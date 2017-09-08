@@ -1,0 +1,37 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "baseUrl": ".",
+    "outDir": "./dist",
+    "sourceMap": true,
+    "declaration": true,
+    "moduleResolution": "node",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "target": "es5",
+    "typeRoots": [
+      "./node_modules/@types",
+      "./src/lib/typings"
+    ],
+    "lib": [
+      "es2017",
+      "dom"
+    ],
+    "paths": {
+      "@angular/core": ["node_modules/@angular/core"],
+      "rxjs/*": ["node_modules/rxjs/*"],
+      "element-resize-detector/*": ["node_modules/element-resize-detector/*"]
+    },
+    "noImplicitAny": true,
+    "stripInternal": true,
+    "skipLibCheck": true
+  },
+  "files": [
+    "./src/lib/typings/element-resize-detector.d.ts",
+    "./src/index.ts"
+  ],
+  "angularCompilerOptions": {
+    "strictMetadataEmit": true,
+    "experimentalDecorators": true
+  }
+}

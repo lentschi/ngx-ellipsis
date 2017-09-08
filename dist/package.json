@@ -1,0 +1,28 @@
+{
+  "name": "angular-amazing",
+  "version": "1.0.0",
+  "description": "An amazing module for Angular.",
+  "main": "bundles/ngxEllipsis.umd.js",
+  "module": "index.js",
+  "typings": "index.d.ts",
+  "keywords": [
+    "angular",
+    "angular4",
+    "ellipsis",
+    "last line ellipsis"
+  ],
+  "author": "Your name",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lentschi/ngx-ellipsis.git"
+  },
+  "homepage": "https://github.com/lentschi/ngx-ellipsis",
+  "bugs": {
+    "url": "https://github.com/lentschi/ngx-ellipsis/issues"
+  },
+  "peerDependencies": {
+    "@angular/core": "^4.0.0",
+    "element-resize-detector": "^1.1.12"
+  }
+}
