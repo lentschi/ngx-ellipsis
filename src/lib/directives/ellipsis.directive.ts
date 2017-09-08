@@ -1,4 +1,4 @@
-import { Directive, ElementRef, Renderer2, Input } from '@angular/core';
+import { Directive, ElementRef, Renderer2, Input, Output, EventEmitter } from '@angular/core';
 import * as elementResizeDetectorMaker from 'element-resize-detector';
 
 /**
@@ -28,6 +28,12 @@ export class EllipsisDirective {
    * Inner div element (will be auto-created)
    */
   private innerElem: any;
+  
+  /**
+   * Remove function for the currently registered click listener 
+   * on the link `this.ellipsisCharacters` are wrapped in.
+   */
+  private destroyMoreClickListener: () => void;
 
   /**
    * The ellipsis html attribute
@@ -36,6 +42,13 @@ export class EllipsisDirective {
    * Else '...' will be appended.
    */
   @Input('ellipsis') ellipsisCharacters: string;
+  
+  /**
+   * The ellipsis-content html attribute
+   * If passed this is used as content, else contents
+   * are fetched from innerHTML
+   */
+  @Input('ellipsis-content') ellipsisContent: string = null;
 
   /**
    * The ellipsis-word-boundaries html attribute
@@ -44,6 +57,14 @@ export class EllipsisDirective {
    * Else the text may be truncated at any character.
    */
   @Input('ellipsis-word-boundaries') ellipsisWordBoundaries: string;
+  
+  /**
+   * The ellipsis-click-more html attribute
+   *  If anything is passed, the ellipsisCharacters will be
+   *  wrapped in <a></a> tags and an event handler for the
+   *  passed function will be added to the link
+   */
+  @Output('ellipsis-click-more') moreClickEmitter: EventEmitter<any> = new EventEmitter();
 
   /**
    * The directive's constructor
@@ -51,13 +72,17 @@ export class EllipsisDirective {
   public constructor(private elementRef: ElementRef, private renderer: Renderer2) { }
 
   /**
-   * Angular's init view cycle hook.
+   * Angular's init view life cycle hook.
    * Initializes the element for displaying the ellipsis.
    */
   ngAfterViewInit() {
     // let the ellipsis characters default to '...':
     if (this.ellipsisCharacters == '') {
       this.ellipsisCharacters = '...';
+    }
+    
+    if (this.moreClickEmitter.observers.length > 0) {
+      this.ellipsisCharacters = `<a href="#" class="ngx-ellipsis-more">${this.ellipsisCharacters}</a>`;
     }
 
     // perform regex replace on word boundaries:
@@ -68,17 +93,54 @@ export class EllipsisDirective {
 
     // store the original contents of the element:
     this.elem = this.elementRef.nativeElement;
-    this.originalText = this.elem.innerText;
+    if (this.ellipsisContent) {
+      this.originalText = this.ellipsisContent;
+    }
+    else if (!this.originalText) {
+      this.originalText = this.elem.innerText;
+    }
 
     // add a wrapper div (required for resize events to work properly):
     this.renderer.setProperty(this.elem, 'innerHTML', '');
     this.innerElem = this.renderer.createElement('div');
+    this.renderer.addClass(this.innerElem, 'ngx-ellipsis-inner');
     const text = this.renderer.createText(this.originalText);
     this.renderer.appendChild(this.innerElem, text);
     this.renderer.appendChild(this.elem, this.innerElem);
-
+    
     // start listening for resize events (will trigger right away even though no resize has happened):
     this.addResizeListener();
+  }
+  
+  /**
+   * Angular's change life cycle hook.
+   * Change original text (if the ellipsis-content has been passed)
+   * and re-render
+   */
+  ngOnChanges() {
+    if (this.ellipsisContent) {
+      this.originalText = this.ellipsisContent;
+    }
+    
+    if (this.elem) {
+      this.applyEllipsis();
+    }
+  }
+  
+  /**
+   * Angular's destroy life cycle hook.
+   * Remove event listeners
+   */
+  ngOnDestroy() {
+    this.removeAllListeners();
+  }
+  
+  private removeAllListeners() {
+    if (this.destroyMoreClickListener) {
+      this.destroyMoreClickListener();
+    }
+    
+    this.removeResizeListener();
   }
 
   /**
@@ -98,7 +160,6 @@ export class EllipsisDirective {
         // -> discard that first event:
         return;
       }
-
       this.applyEllipsis();
     });
     calledAsynchronously = true;
@@ -108,7 +169,9 @@ export class EllipsisDirective {
    * Stop listening for the element resize event.
    */
   private removeResizeListener() {
-    EllipsisDirective.elementResizeDetector.removeAllListeners(this.elem);
+    if (EllipsisDirective.elementResizeDetector && this.elem) {
+      EllipsisDirective.elementResizeDetector.removeAllListeners(this.elem);
+    }
   }
 
   /**
@@ -134,16 +197,38 @@ export class EllipsisDirective {
   /**
    * Set the truncated text to be displayed in the inner div
    * @param  {number} max the maximum length the text may have
+   * @param {boolean} addMoreListener=false listen for click on the ellipsisCharacters if the text has been truncated
    */
-  private truncateText(max: number) {
+  private truncateText(max: number, addMoreListener = false) {
     const text = this.getTruncatedText(max);
-    this.renderer.setProperty(this.innerElem, 'innerText', text);
+    this.renderer.setProperty(this.innerElem, 'innerHTML', text);
+    
+    if (!addMoreListener) {
+      return;
+    }
+    
+    // Remove any existing more click listener:
+    if (this.destroyMoreClickListener) {
+      this.destroyMoreClickListener();
+    }
+    
+    // If the text has been truncated, add a more click listener:
+    if (text != this.originalText) {
+      this.destroyMoreClickListener = this.renderer.listen(this.innerElem, 'click', (e:any) => {
+        if (!e.target || e.target.className != 'ngx-ellipsis-more') {
+          return;
+        }
+        e.preventDefault();
+        this.moreClickEmitter.emit(e);
+      });
+    }
   }
 
   /**
    * Display ellipsis in the inner div if the text would exceed the boundaries
    */
   private applyEllipsis() {
+    console.log("Applying");
     // Remove the resize listener as changing the contained text would trigger events:
     this.removeResizeListener();
 
@@ -154,7 +239,7 @@ export class EllipsisDirective {
     });
 
     // Apply the best length:
-    this.truncateText(maxLength);
+    this.truncateText(maxLength, (this.moreClickEmitter.observers.length > 0));
 
     // Re-attach the resize listener:
     this.addResizeListener();

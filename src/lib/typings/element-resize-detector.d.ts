@@ -4,6 +4,7 @@ declare module 'element-resize-detector' {
   namespace elementResizeDetectorMaker {
     interface ErdmOptions {
       strategy?: 'scroll' | 'object';
+      debug?: boolean;
     }
 
     interface Erd {

@@ -1,6 +1,6 @@
 {
   "name": "ngx-ellipsis",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Multiline text with ellipsis for angular 4+",
   "main": "bundles/ngxEllipsis.umd.js",
   "module": "index.js",
