@@ -50,13 +50,13 @@ You may add the following attributes to change the directive's behavior:
 
 In case you want to contribute/fork:
 
-`ng build` outputs the build to `./dist`.
+`npm run build` outputs the build to `./dist`.
 Then you can publish by adepting version and author in `./dist/package.json` and running `cd dist && npm publish`.
 
 
 ## Running unit tests
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+Run `npm run test` to execute the unit tests via [Karma](https://karma-runner.github.io).
 
 ## Thank you...
 
