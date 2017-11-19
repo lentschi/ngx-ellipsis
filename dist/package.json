@@ -23,11 +23,11 @@
     "url": "https://github.com/lentschi/ngx-ellipsis/issues"
   },
   "dependencies": {
-    "@angular/core": "^4.0.0",
+    "@angular/core": ">=4.0.0",
     "element-resize-detector": "^1.1.12"
   },
   "peerDependencies": {
-    "@angular/core": "^4.0.0",
+    "@angular/core": ">=4.0.0",
     "element-resize-detector": "^1.1.12"
   }
 }
