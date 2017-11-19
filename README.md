@@ -52,7 +52,7 @@ You may add the following attributes to change the directive's behavior:
 
 In case you want to contribute/fork:
 
-`npm run build` outputs the build to `./dist`.
+`npm install && npm run build` outputs the build to `./dist`.
 Then you can publish by adepting version and author in `./dist/package.json` and running `cd dist && npm publish`.
 
 
