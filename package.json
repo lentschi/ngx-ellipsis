@@ -8,7 +8,7 @@
     "lint": "ng lint",
     "transpile": "ngc",
     "package": "rollup -c",
-    "minify": "uglifyjs dist/bundles/ngxEllipsis.umd.js --screw-ie8 --compress --mangle --comments --output dist/bundles/ngxEllipsis.umd.min.js",
+    "minify": "uglifyjs dist/ngxEllipsis.umd.js --screw-ie8 --compress --mangle --comments --output dist/ngxEllipsis.umd.min.js",
     "build": "npm run transpile && npm run package && npm run minify"
   },
   "private": true,
