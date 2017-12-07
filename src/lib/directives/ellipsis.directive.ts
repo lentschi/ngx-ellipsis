@@ -168,6 +168,10 @@ export class EllipsisDirective {
    * @param  {boolean} triggerNow=false if true, the ellipsis is applied immediately
    */
   private addResizeListener(triggerNow = false) {
+    if (typeof(this.resizeDetectionStrategy) == 'undefined') {
+      this.resizeDetectionStrategy = '';
+    }
+    
     switch (this.resizeDetectionStrategy) {
       case 'window':
         this.applyOnWindowResize = true;
