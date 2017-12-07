@@ -180,7 +180,7 @@ export class EllipsisDirective {
         break;
       default:
         if (typeof (console) != 'undefined') {
-          console.warn(`No such ellipsis-resize-detection strategy: '${this.resizeDetectionStrategy}' - Using'element-resize-detector' instead`);
+          console.warn(`No such ellipsis-resize-detection strategy: '${this.resizeDetectionStrategy}' - Using 'element-resize-detector' instead`);
         }
       case 'element-resize-detector':
       case '':
