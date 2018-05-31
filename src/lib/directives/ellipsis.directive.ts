@@ -35,7 +35,7 @@ export class EllipsisDirective {
   private applyOnWindowResize = false;
 
   /**
-   * Remove function for the currently registered click listener 
+   * Remove function for the currently registered click listener
    * on the link `this.ellipsisCharacters` are wrapped in.
    */
   private destroyMoreClickListener: () => void;
@@ -134,7 +134,7 @@ export class EllipsisDirective {
    * and re-render
    */
   ngOnChanges() {
-    if (!this.elem || !this.ellipsisContent || this.originalText == this.ellipsisContent) {
+    if (!this.elem || this.ellipsisContent === undefined || this.originalText === this.ellipsisContent) {
       return;
     }
 
@@ -171,7 +171,7 @@ export class EllipsisDirective {
     if (typeof(this.resizeDetectionStrategy) == 'undefined') {
       this.resizeDetectionStrategy = '';
     }
-    
+
     switch (this.resizeDetectionStrategy) {
       case 'window':
         this.applyOnWindowResize = true;
