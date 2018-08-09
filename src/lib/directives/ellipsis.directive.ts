@@ -18,6 +18,8 @@ export class EllipsisDirective {
    * The original text (not truncated yet)
    */
   private originalText: string;
+  
+  private originalEnabled = true;
 
   /**
    * The referenced element
@@ -54,6 +56,8 @@ export class EllipsisDirective {
    * are fetched from innerHTML
    */
   @Input('ellipsis-content') ellipsisContent: string = null;
+  
+  @Input('ellipsis-disabled') ellipsisDisabled: boolean = null;
 
   /**
    * The ellipsis-word-boundaries html attribute
@@ -96,7 +100,7 @@ export class EllipsisDirective {
     if (this.ellipsisCharacters == '') {
       this.ellipsisCharacters = '...';
     }
-
+    
     if (this.moreClickEmitter.observers.length > 0) {
       this.ellipsisCharacters = `<a href="#" class="ngx-ellipsis-more">${this.ellipsisCharacters}</a>`;
     }
@@ -134,11 +138,14 @@ export class EllipsisDirective {
    * and re-render
    */
   ngOnChanges() {
-    if (!this.elem || !this.ellipsisContent || this.originalText == this.ellipsisContent) {
+    if (!this.elem || !this.ellipsisContent || (this.originalText == this.ellipsisContent && this.originalEnabled == this.ellipsisDisabled)) {
       return;
     }
-
-    this.originalText = this.ellipsisContent
+    
+    console.log("Changes!");
+    this.originalText = this.ellipsisContent;
+    this.originalEnabled = this.ellipsisDisabled;
+    
     this.applyEllipsis();
   }
 
@@ -171,7 +178,6 @@ export class EllipsisDirective {
     if (typeof(this.resizeDetectionStrategy) == 'undefined') {
       this.resizeDetectionStrategy = '';
     }
-    
     switch (this.resizeDetectionStrategy) {
       case 'window':
         this.applyOnWindowResize = true;
@@ -288,10 +294,15 @@ export class EllipsisDirective {
     }
   }
 
+
   /**
    * Display ellipsis in the inner div if the text would exceed the boundaries
    */
-  private applyEllipsis() {
+  private applyEllipsis() {  
+    if (!this.ellipsisDisabled) {
+      return;
+    }
+    
     // Remove the resize listener as changing the contained text would trigger events:
     this.removeResizeListener();
 
