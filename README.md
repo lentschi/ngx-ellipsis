@@ -1,6 +1,6 @@
 # ngx-ellipsis
 
-Plugin for angular (>= 4.0.0) providing a directive to display an ellipsis if the containing text would overflow.
+Plugin for angular (>= 6.0.0) providing a directive to display an ellipsis if the containing text would overflow.
 
 Supports text only (no html contents)!
 
