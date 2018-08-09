@@ -172,7 +172,7 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
    * and re-render
    */
   ngOnChanges() {
-    if (!this.elem || !this.ellipsisContent || this.originalText === this.ellipsisContent) {
+    if (!this.elem || typeof this.ellipsisContent === 'undefined' || this.originalText === this.ellipsisContent) {
       return;
     }
 
