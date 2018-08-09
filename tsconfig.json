@@ -1,37 +1,29 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
-    "baseUrl": ".",
-    "outDir": "./dist",
+    "baseUrl": "./",
+    "outDir": "./dist/out-tsc",
     "sourceMap": true,
-    "declaration": true,
+    "declaration": false,
+    "module": "es2015",
     "moduleResolution": "node",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "target": "es5",
     "typeRoots": [
-      "./node_modules/@types",
-      "./src/lib/typings"
+      "node_modules/@types"
     ],
     "lib": [
       "es2017",
       "dom"
     ],
     "paths": {
-      "@angular/core": ["node_modules/@angular/core"],
-      "rxjs/*": ["node_modules/rxjs/*"],
-      "element-resize-detector/*": ["node_modules/element-resize-detector/*"]
-    },
-    "noImplicitAny": true,
-    "stripInternal": true,
-    "skipLibCheck": true
-  },
-  "files": [
-    "./src/lib/typings/element-resize-detector.d.ts",
-    "./src/index.ts"
-  ],
-  "angularCompilerOptions": {
-    "strictMetadataEmit": true,
-    "experimentalDecorators": true
+      "ngx-ellipsis": [
+        "dist/ngx-ellipsis"
+      ],
+      "ngx-ellipsis/*": [
+        "dist/ngx-ellipsis/*"
+      ]
+    }
   }
 }

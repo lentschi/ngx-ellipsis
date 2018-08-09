@@ -2,15 +2,15 @@ import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 
 import { AppComponent } from './app.component';
-import { EllipsisDirective } from '../lib/directives/ellipsis.directive';
+import { EllipsisModule } from 'projects/ngx-ellipsis/src/public_api';
 
 @NgModule({
   declarations: [
-    AppComponent,
-    EllipsisDirective
+    AppComponent
   ],
   imports: [
-    BrowserModule
+    BrowserModule,
+    EllipsisModule
   ],
   providers: [],
   bootstrap: [AppComponent]

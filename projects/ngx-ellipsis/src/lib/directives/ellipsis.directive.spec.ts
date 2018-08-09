@@ -1,14 +1,14 @@
 import { TestBed, async, ComponentFixture } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import {Component} from '@angular/core';
+import {Component, AfterViewChecked} from '@angular/core';
 import {EllipsisDirective} from './ellipsis.directive';
 import { ComponentFixtureAutoDetect } from '@angular/core/testing';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000;
 
 describe('EllipsisDirective', () => {
-  let fixture:ComponentFixture<TestComponent>;
-  let componentInstance:TestComponent;
+  let fixture: ComponentFixture<TestComponent>;
+  let componentInstance: TestComponent;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
@@ -47,7 +47,7 @@ describe('EllipsisDirective', () => {
     </div>
   `
 })
-class TestComponent {
+class TestComponent implements AfterViewChecked {
   ngAfterViewChecked() {
 
   }

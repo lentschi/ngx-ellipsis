@@ -1,4 +1,16 @@
-import { Directive, ElementRef, Renderer2, Input, Output, EventEmitter, NgZone, HostListener } from '@angular/core';
+import {
+  Directive,
+  ElementRef,
+  Renderer2,
+  Input,
+  Output,
+  EventEmitter,
+  NgZone,
+  HostListener,
+  OnChanges,
+  AfterViewInit,
+  OnDestroy
+} from '@angular/core';
 import * as elementResizeDetectorMaker from 'element-resize-detector';
 
 /**
@@ -8,7 +20,7 @@ import * as elementResizeDetectorMaker from 'element-resize-detector';
 @Directive({
   selector: '[ellipsis]'
 })
-export class EllipsisDirective {
+export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
   /**
    * Instance of https://github.com/wnr/element-resize-detector
    */
@@ -30,12 +42,12 @@ export class EllipsisDirective {
   private innerElem: any;
 
   /**
-   * Wether the ellipsis should be applied on window resize
+   * Whether the ellipsis should be applied on window resize
    */
   private applyOnWindowResize = false;
 
   /**
-   * Remove function for the currently registered click listener 
+   * Remove function for the currently registered click listener
    * on the link `this.ellipsisCharacters` are wrapped in.
    */
   private destroyMoreClickListener: () => void;
@@ -81,6 +93,33 @@ export class EllipsisDirective {
   @Output('ellipsis-click-more') moreClickEmitter: EventEmitter<any> = new EventEmitter();
 
 
+  /**
+   * Utility method to quickly find the largest number for
+   * which `callback(number)` still returns true.
+   * @param  max      Highest possible number
+   * @param  callback Should return true as long as the passed number is valid
+   * @return          Largest possible number
+   */
+  private static numericBinarySearch(max: number, callback: (n: number) => boolean): number {
+    let low = 0;
+    let high = max;
+    let best = -1;
+    let mid: number;
+
+    while (low <= high) {
+      // tslint:disable-next-line:no-bitwise
+      mid = ~~((low + high) / 2);
+      const result = callback(mid);
+      if (!result) {
+        high = mid - 1;
+      } else {
+        best = mid;
+        low = mid + 1;
+      }
+    }
+
+    return best;
+  }
 
   /**
    * The directive's constructor
@@ -93,7 +132,7 @@ export class EllipsisDirective {
    */
   ngAfterViewInit() {
     // let the ellipsis characters default to '...':
-    if (this.ellipsisCharacters == '') {
+    if (this.ellipsisCharacters === '') {
       this.ellipsisCharacters = '...';
     }
 
@@ -105,14 +144,13 @@ export class EllipsisDirective {
     if (!this.ellipsisWordBoundaries) {
       this.ellipsisWordBoundaries = '';
     }
-    this.ellipsisWordBoundaries = "[" + this.ellipsisWordBoundaries.replace(/\\n/, "\n").replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&') + "]";
+    this.ellipsisWordBoundaries = '[' + this.ellipsisWordBoundaries.replace(/\\n/, '\n').replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&') + ']';
 
     // store the original contents of the element:
     this.elem = this.elementRef.nativeElement;
     if (this.ellipsisContent) {
       this.originalText = this.ellipsisContent;
-    }
-    else if (!this.originalText) {
+    } else if (!this.originalText) {
       this.originalText = this.elem.innerText;
     }
 
@@ -134,11 +172,11 @@ export class EllipsisDirective {
    * and re-render
    */
   ngOnChanges() {
-    if (!this.elem || !this.ellipsisContent || this.originalText == this.ellipsisContent) {
+    if (!this.elem || !this.ellipsisContent || this.originalText === this.ellipsisContent) {
       return;
     }
 
-    this.originalText = this.ellipsisContent
+    this.originalText = this.ellipsisContent;
     this.applyEllipsis();
   }
 
@@ -165,13 +203,13 @@ export class EllipsisDirective {
   /**
    * Set up an event listener to call applyEllipsis() whenever a resize has been registered.
    * The type of the listener (window/element) depends on the resizeDetectionStrategy.
-   * @param  {boolean} triggerNow=false if true, the ellipsis is applied immediately
+   * @param triggerNow=false if true, the ellipsis is applied immediately
    */
   private addResizeListener(triggerNow = false) {
-    if (typeof(this.resizeDetectionStrategy) == 'undefined') {
+    if (typeof (this.resizeDetectionStrategy) === 'undefined') {
       this.resizeDetectionStrategy = '';
     }
-    
+
     switch (this.resizeDetectionStrategy) {
       case 'window':
         this.applyOnWindowResize = true;
@@ -183,9 +221,12 @@ export class EllipsisDirective {
         this.addElementResizeListener(false);
         break;
       default:
-        if (typeof (console) != 'undefined') {
-          console.warn(`No such ellipsis-resize-detection strategy: '${this.resizeDetectionStrategy}' - Using 'element-resize-detector' instead`);
+        if (typeof (console) !== 'undefined') {
+          console.warn(
+            `No such ellipsis-resize-detection strategy: '${this.resizeDetectionStrategy}'. Using 'element-resize-detector' instead`
+          );
         }
+      // tslint:disable-next-line:no-switch-case-fall-through
       case 'element-resize-detector':
       case '':
         this.addElementResizeListener();
@@ -204,11 +245,12 @@ export class EllipsisDirective {
   /**
    * Set up an event listener to call applyEllipsis() whenever the element
    * has been resized.
-   * @param {boolean} scrollStrategy=true Use the default elementResizeDetector's strategy - s. https://github.com/wnr/element-resize-detector
+   * @param scrollStrategy=true Use the default elementResizeDetector's - strategy - s. https://github.com/wnr/element-resize-detector
    */
   private addElementResizeListener(scrollStrategy = true) {
     if (!EllipsisDirective.elementResizeDetector) {
-      EllipsisDirective.elementResizeDetector = elementResizeDetectorMaker({ strategy: scrollStrategy ? 'scroll' : 'object' });
+      const maker: any = elementResizeDetectorMaker;
+      EllipsisDirective.elementResizeDetector = maker({ strategy: scrollStrategy ? 'scroll' : 'object' });
     }
 
 
@@ -228,12 +270,11 @@ export class EllipsisDirective {
    * Stop listening for any resize event.
    */
   private removeResizeListener() {
-    if (this.resizeDetectionStrategy != 'window') {
+    if (this.resizeDetectionStrategy !== 'window') {
       if (EllipsisDirective.elementResizeDetector && this.elem) {
         EllipsisDirective.elementResizeDetector.removeAllListeners(this.elem);
       }
-    }
-    else {
+    } else {
       this.applyOnWindowResize = false;
     }
   }
@@ -241,7 +282,7 @@ export class EllipsisDirective {
   /**
    * Get the original text's truncated version. If the text really needed to
    * be truncated, this.ellipsisCharacters will be appended.
-   * @param  {number} max the maximum length the text may have
+   * @param max the maximum length the text may have
    * @return string       the truncated string
    */
   private getTruncatedText(max: number): string {
@@ -249,19 +290,22 @@ export class EllipsisDirective {
       return this.originalText;
     }
 
-    let truncatedText = this.originalText.substr(0, max);
-    if (this.ellipsisWordBoundaries == '[]' || this.originalText.charAt(max).match(this.ellipsisWordBoundaries)) {
+    const truncatedText = this.originalText.substr(0, max);
+    if (this.ellipsisWordBoundaries === '[]' || this.originalText.charAt(max).match(this.ellipsisWordBoundaries)) {
       return truncatedText + this.ellipsisCharacters;
     }
 
-    for (var i = max - 1; i > 0 && !truncatedText.charAt(i).match(this.ellipsisWordBoundaries); i--);
+    let i = max - 1;
+    while (i > 0 && !truncatedText.charAt(i).match(this.ellipsisWordBoundaries)) {
+      i--;
+    }
     return truncatedText.substr(0, i) + this.ellipsisCharacters;
   }
 
   /**
    * Set the truncated text to be displayed in the inner div
-   * @param  {number} max the maximum length the text may have
-   * @param {boolean} addMoreListener=false listen for click on the ellipsisCharacters if the text has been truncated
+   * @param max the maximum length the text may have
+   * @param addMoreListener=false listen for click on the ellipsisCharacters if the text has been truncated
    */
   private truncateText(max: number, addMoreListener = false) {
     const text = this.getTruncatedText(max);
@@ -277,9 +321,9 @@ export class EllipsisDirective {
     }
 
     // If the text has been truncated, add a more click listener:
-    if (text != this.originalText) {
+    if (text !== this.originalText) {
       this.destroyMoreClickListener = this.renderer.listen(this.innerElem, 'click', (e: any) => {
-        if (!e.target || e.target.className != 'ngx-ellipsis-more') {
+        if (!e.target || e.target.className !== 'ngx-ellipsis-more') {
           return;
         }
         e.preventDefault();
@@ -315,8 +359,8 @@ export class EllipsisDirective {
   private get isOverflowing(): boolean {
     // Enforce hidden overflow (required to compare client width/height with scroll width/height)
     const currentOverflow = this.elem.style.overflow;
-    if (!currentOverflow || currentOverflow === "visible") {
-      this.elem.style.overflow = "hidden";
+    if (!currentOverflow || currentOverflow === 'visible') {
+      this.elem.style.overflow = 'hidden';
     }
 
     const isOverflowing = this.elem.clientWidth < this.elem.scrollWidth - 1 || this.elem.clientHeight < this.elem.scrollHeight - 1;
@@ -325,33 +369,5 @@ export class EllipsisDirective {
     this.elem.style.overflow = currentOverflow;
 
     return isOverflowing;
-  }
-
-  /**
-   * Utility method to quickly find the largest number for
-   * which `callback(number)` still returns true.
-   * @param  {number} max      Highest possible number
-   * @param  {number} callback Should return true as long as the passed number is valid
-   * @return {number}          Largest possible number
-   */
-  private static numericBinarySearch(max: number, callback: (n: number) => boolean): number {
-    let low = 0;
-    let high = max;
-    let best = -1;
-    let mid: number;
-
-    while (low <= high) {
-      mid = ~~((low + high) / 2);
-      const result = callback(mid);
-      if (!result) {
-        high = mid - 1;
-      }
-      else {
-        best = mid;
-        low = mid + 1;
-      }
-    }
-
-    return best;
   }
 }

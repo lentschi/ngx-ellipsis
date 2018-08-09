@@ -52,18 +52,19 @@ You may add the following attributes to change the directive's behavior:
 
 In case you want to contribute/fork:
 
-`npm install && npm run build` outputs the build to `./dist`.
-Then you can publish by adepting version and author in `./dist/package.json`, adding your modified `README.md` to `./dist/` and running `cd dist && npm publish`.
+1. Run `npm install --prefix ./projects/ngx-ellipsis`
+1. Adept version and author in `./projects/ngx-ellipsis/package.json`.
+1. Run `ng build ngx-ellipsis --prod` which outputs the build to `./dist/ngx-ellipsis`.
+1. Run `cd ./dist/ngx-ellipsis && npm publish`.
 
 
 ## Running unit tests
 
-Run `npm run test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+Run `npm run test ngx-ellipsis` to execute the unit tests via [Karma](https://karma-runner.github.io).
 
 ## Thank you...
 
-- ... __Cyrille Tuzi__ for creating a very [comprehensive tutorial on how to build and publish angular modules](https://medium.com/@cyrilletuzi/how-to-build-and-publish-an-angular-module-7ad19c0b4464).
-- ... __Lucas Wiener__ for writing the [element-resize-detector](https://github.com/wnr/element-resize-detector) packages which is internally used by this module.
+- ... __Lucas Wiener__ for writing the [element-resize-detector](https://github.com/wnr/element-resize-detector) package which are internally used by this module.
 
 ## License
 
