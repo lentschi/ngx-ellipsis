@@ -127,12 +127,14 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
    * @return       escaped string
    */
   private static escapeHtml(unsafe: string): string {
-    return unsafe
+    unsafe = unsafe
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#039;');
+
+    return unsafe;
   }
 
   /**
@@ -187,8 +189,8 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
    */
   ngOnChanges() {
     if (!this.elem
-        || typeof this.ellipsisContent === 'undefined'
-        || this.originalText === EllipsisDirective.escapeHtml(this.ellipsisContent)) {
+      || typeof this.ellipsisContent === 'undefined'
+      || this.originalText === EllipsisDirective.escapeHtml(this.ellipsisContent)) {
       return;
     }
 
