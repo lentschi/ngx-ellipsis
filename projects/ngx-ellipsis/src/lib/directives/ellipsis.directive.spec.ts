@@ -1,5 +1,4 @@
 import { TestBed, async, ComponentFixture } from '@angular/core/testing';
-import { By } from '@angular/platform-browser';
 import {Component, AfterViewChecked} from '@angular/core';
 import {EllipsisDirective} from './ellipsis.directive';
 import { ComponentFixtureAutoDetect } from '@angular/core/testing';

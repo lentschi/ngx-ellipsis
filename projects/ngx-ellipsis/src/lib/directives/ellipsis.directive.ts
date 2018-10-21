@@ -122,6 +122,20 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
   }
 
   /**
+   * Escape html special characters
+   * @param unsafe string potentially containing special characters
+   * @return       escaped string
+   */
+  private static escapeHtml(unsafe: string): string {
+    return unsafe
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  /**
    * The directive's constructor
    */
   public constructor(private elementRef: ElementRef, private renderer: Renderer2, private ngZone: NgZone) { }
@@ -149,7 +163,7 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
     // store the original contents of the element:
     this.elem = this.elementRef.nativeElement;
     if (this.ellipsisContent) {
-      this.originalText = this.ellipsisContent;
+      this.originalText = EllipsisDirective.escapeHtml(this.ellipsisContent);
     } else if (!this.originalText) {
       this.originalText = this.elem.innerText;
     }
@@ -172,11 +186,13 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
    * and re-render
    */
   ngOnChanges() {
-    if (!this.elem || typeof this.ellipsisContent === 'undefined' || this.originalText === this.ellipsisContent) {
+    if (!this.elem
+        || typeof this.ellipsisContent === 'undefined'
+        || this.originalText === EllipsisDirective.escapeHtml(this.ellipsisContent)) {
       return;
     }
 
-    this.originalText = this.ellipsisContent;
+    this.originalText = EllipsisDirective.escapeHtml(this.ellipsisContent);
     this.applyEllipsis();
   }
 
