@@ -27,15 +27,32 @@ describe('EllipsisDirective', () => {
     spyOn(componentInstance, 'ngAfterViewChecked');
   }));
 
-  it('should create a ellipsis', async(() => {
+  it('should create a ellipsis', async(async () => {
     fixture.detectChanges();
-    fixture.whenStable().then(() => {
-      fixture.detectChanges();
-      const compiled = fixture.debugElement.nativeElement;
-      const ellipsisDiv = compiled.querySelector('#ellipsisTest > div');
-      expect(ellipsisDiv.innerHTML).toBe('Lorem ipsum dolor sit amet...');
-    });
+    await fixture.whenStable();
+    const compiled = fixture.debugElement.nativeElement;
+    const ellipsisDiv = compiled.querySelector('#ellipsisTest > div');
+    expect(ellipsisDiv.innerHTML).toBe('Lorem ipsum dolor sit amet...');
 
+  }));
+
+  it('should create a ellipsis escaping html content', async(async () => {
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const compiled = fixture.debugElement.nativeElement;
+    const ellipsisDiv = compiled.querySelector('#ellipsisTestDynamic > div');
+    expect(ellipsisDiv.innerText).toBe('<b>Lorem ipsum</b> dolor sit amet, consetetur sadipscing...');
+
+    componentInstance.htmlContent = 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt';
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(ellipsisDiv.innerText).toBe('Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed...');
+
+    componentInstance.htmlContent = `Lorem ipsum dolor <b>sit amet</b>,
+      consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt`;
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(ellipsisDiv.innerText).toBe('Lorem ipsum dolor <b>sit amet</b>, consetetur sadipscing...');
   }));
 });
 
@@ -45,9 +62,16 @@ describe('EllipsisDirective', () => {
     <div style="width: 100px; height:50px;" id="ellipsisTest" ellipsis>
       Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt
     </div>
+    <div
+        style="width: 100px; height:100px;"
+        id="ellipsisTestDynamic"
+        ellipsis
+        ellipsis-word-boundaries=" \n"
+        [ellipsis-content]="htmlContent"></div>
   `
 })
 class TestComponent implements AfterViewChecked {
+  htmlContent = '<b>Lorem ipsum</b> dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt';
   ngAfterViewChecked() {
 
   }
