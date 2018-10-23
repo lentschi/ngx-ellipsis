@@ -1,0 +1,17 @@
+.samples {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.sample {
+  width: 200px;
+  height: 200px;
+  border: dashed 2px gray;
+  margin: 30px;
+}
+
+.small {
+  width: 100px;
+  height: 20px;
+}
