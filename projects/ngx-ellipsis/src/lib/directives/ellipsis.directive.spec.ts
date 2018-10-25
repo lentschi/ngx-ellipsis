@@ -53,6 +53,19 @@ describe('EllipsisDirective', () => {
     await fixture.whenStable();
     expect(ellipsisDiv.innerText).toBe('Lorem ipsum dolor <b>sit amet</b>, consetetur sadipscing...');
   }));
+
+  it('should handle null graciously', async(async () => {
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const compiled = fixture.debugElement.nativeElement;
+    const ellipsisDiv = compiled.querySelector('#ellipsisTestDynamic > div');
+    expect(ellipsisDiv.innerText).toBe('<b>Lorem ipsum</b> dolor sit amet, consetetur sadipscing...');
+
+    componentInstance.htmlContent = null;
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(ellipsisDiv.innerText).toBe('');
+  }));
 });
 
 @Component({
