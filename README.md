@@ -32,7 +32,10 @@ export class AppModule {}
 Anywhere in your template:
 
 ```html
-<div ellipsis>Your very long text</div>
+<div style="width: 100px; height: 100px;" ellipsis>Your very long text</div>
+
+<!-- Or for dynamic content: -->
+<div style="width: 100px; height: 100px;" ellipsis [ellipsis-content]="yourDynamicContent"></div>
 ```
 
 ### Extra options
