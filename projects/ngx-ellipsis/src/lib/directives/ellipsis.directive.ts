@@ -233,9 +233,6 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
     switch (this.resizeDetectionStrategy) {
       case 'window':
         this.applyOnWindowResize = true;
-        if (triggerNow) {
-          this.applyEllipsis();
-        }
         break;
       case 'element-resize-detector-object':
         this.addElementResizeListener(false);
@@ -251,6 +248,10 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
       case '':
         this.addElementResizeListener();
         break;
+    }
+
+    if (triggerNow) {
+      this.applyEllipsis();
     }
   }
 
@@ -274,16 +275,16 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
     }
 
 
-    let calledAsynchronously = false;
+    let firstEvent = true;
     EllipsisDirective.elementResizeDetector.listenTo(this.elementRef.nativeElement, () => {
-      if (!calledAsynchronously) {
+      if (firstEvent) {
         // elementResizeDetector fires the event directly after re-attaching the listener
         // -> discard that first event:
+        firstEvent = false;
         return;
       }
       this.applyEllipsis();
     });
-    calledAsynchronously = true;
   }
 
   /**
