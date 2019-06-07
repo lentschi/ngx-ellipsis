@@ -1,8 +1,14 @@
 <h1>Welcome to ngx-ellipsis-demo!</h1>
-<div class="samples">
+<h2>With fixed widths (drag bottom right corners to resize):</h2>
+<div class="samples fixed">
   <div class="sample" ellipsis>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.</div>
   <div class="sample" ellipsis [ellipsis-content]="longText"></div>
   <div class="sample small" ellipsis [ellipsis-content]="number"></div>
-  <div class="sample" ellipsis [ellipsis-content]="undefinedText"></div>
-  <div class="sample" ellipsis [ellipsis-content]="nullText"></div>
+</div>
+
+<h2>With percentage widths (resize window horizontally or boxes vertically to see changes in ellipsis):</h2>
+<div class="samples flex">
+  <div class="sample" ellipsis>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.</div>
+  <div class="sample" ellipsis [ellipsis-content]="longText"></div>
+  <div class="sample small" ellipsis [ellipsis-content]="number"></div>
 </div>

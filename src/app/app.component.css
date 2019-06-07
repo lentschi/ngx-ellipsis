@@ -9,9 +9,25 @@
   height: 200px;
   border: dashed 2px gray;
   margin: 30px;
+
+  overflow: hidden;
+}
+
+.sample:hover {
+  resize: both;
 }
 
 .small {
   width: 100px;
   height: 20px;
+}
+
+.samples.flex .sample, .samples.flex .small {
+  flex: 1;
+  width: inherit;
+  height: 100px;
+}
+
+.samples.flex .sample:hover, .samples.flex .small:hover {
+  resize: vertical;
 }
