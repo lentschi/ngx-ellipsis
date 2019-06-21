@@ -18,7 +18,8 @@ import * as elementResizeDetectorMaker from 'element-resize-detector';
  * and append characters (configurable, default '...') if so.
  */
 @Directive({
-  selector: '[ellipsis]'
+  selector: '[ellipsis]',
+  exportAs: 'ellipsis'
 })
 export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
   /**
@@ -82,7 +83,8 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
    * 'element-resize-detector-object': Use https://github.com/wnr/element-resize-detector with its 'object' strategy (deprecated)
    * 'window': Only check if the whole window has been resized/changed orientation by using angular's built-in HostListener
    */
-  @Input('ellipsis-resize-detection') resizeDetectionStrategy: '' | 'element-resize-detector' | 'element-resize-detector-object' | 'window';
+  @Input('ellipsis-resize-detection') resizeDetectionStrategy:
+    '' | 'manual' | 'element-resize-detector' | 'element-resize-detector-object' | 'window';
 
   /**
    * The ellipsis-click-more html attribute
@@ -231,6 +233,9 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
     }
 
     switch (this.resizeDetectionStrategy) {
+      case 'manual':
+        // Users will trigger applyEllipsis via the public API
+        break;
       case 'window':
         this.applyOnWindowResize = true;
         break;
@@ -250,12 +255,12 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
         break;
     }
 
-    if (triggerNow) {
+    if (triggerNow && this.resizeDetectionStrategy !== 'manual') {
       this.applyEllipsis();
     }
   }
 
-  @HostListener('window:resize', ['$event']) onResize(event: Event) {
+  @HostListener('window:resize', ['$event']) resize(event: Event) {
     this.ngZone.run(() => {
       if (this.applyOnWindowResize) {
         this.applyEllipsis();
@@ -356,7 +361,7 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
   /**
    * Display ellipsis in the inner div if the text would exceed the boundaries
    */
-  private applyEllipsis() {
+  public applyEllipsis() {
     // Remove the resize listener as changing the contained text would trigger events:
     this.removeResizeListener();
 
