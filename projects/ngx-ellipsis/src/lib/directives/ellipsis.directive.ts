@@ -260,7 +260,7 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
     }
   }
 
-  @HostListener('window:resize', ['$event']) resize(event: Event) {
+  @HostListener('window:resize', ['$event']) onResize(event: Event) {
     this.ngZone.run(() => {
       if (this.applyOnWindowResize) {
         this.applyEllipsis();
