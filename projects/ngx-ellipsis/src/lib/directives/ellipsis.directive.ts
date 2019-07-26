@@ -92,7 +92,7 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
    *  wrapped in <a></a> tags and an event handler for the
    *  passed function will be added to the link
    */
-  @Output('ellipsis-click-more') moreClickEmitter: EventEmitter<any> = new EventEmitter();
+  @Output('ellipsis-click-more') moreClickEmitter: EventEmitter<MouseEvent> = new EventEmitter();
 
 
   /**
@@ -348,8 +348,8 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
 
     // If the text has been truncated, add a more click listener:
     if (text !== this.originalText) {
-      this.destroyMoreClickListener = this.renderer.listen(this.innerElem, 'click', (e: any) => {
-        if (!e.target || e.target.className !== 'ngx-ellipsis-more') {
+      this.destroyMoreClickListener = this.renderer.listen(this.innerElem, 'click', (e: MouseEvent) => {
+        if (!e.target || (<HTMLElement> e.target).className !== 'ngx-ellipsis-more') {
           return;
         }
         e.preventDefault();
