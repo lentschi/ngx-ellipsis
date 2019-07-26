@@ -88,12 +88,19 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
 
   /**
    * The ellipsis-click-more html attribute
-   *  If anything is passed, the ellipsisCharacters will be
-   *  wrapped in <a></a> tags and an event handler for the
-   *  passed function will be added to the link
+   * If anything is passed, the ellipsisCharacters will be
+   * wrapped in <a></a> tags and an event handler for the
+   * passed function will be added to the link
    */
   @Output('ellipsis-click-more') moreClickEmitter: EventEmitter<MouseEvent> = new EventEmitter();
 
+
+  /**
+   * The ellipsis-change html attribute
+   * This emits after which index the text has been truncated.
+   * If it hasn't been truncated, null is emitted.
+   */
+  @Output('ellipsis-change') changeEmitter: EventEmitter<number> = new EventEmitter();
 
   /**
    * Utility method to quickly find the largest number for
@@ -332,13 +339,14 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
    * Set the truncated text to be displayed in the inner div
    * @param max the maximum length the text may have
    * @param addMoreListener=false listen for click on the ellipsisCharacters if the text has been truncated
+   * @returns length of remaining text (including the ellipsisCharacters if they were added)
    */
-  private truncateText(max: number, addMoreListener = false) {
+  private truncateText(max: number, addMoreListener = false): number {
     const text = this.getTruncatedText(max);
     this.renderer.setProperty(this.innerElem, 'innerHTML', text);
 
     if (!addMoreListener) {
-      return;
+      return text.length;
     }
 
     // Remove any existing more click listener:
@@ -356,6 +364,8 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
         this.moreClickEmitter.emit(e);
       });
     }
+
+    return text.length;
   }
 
   /**
@@ -372,10 +382,17 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
     });
 
     // Apply the best length:
-    this.truncateText(maxLength, (this.moreClickEmitter.observers.length > 0));
+    const finalLength = this.truncateText(maxLength, (this.moreClickEmitter.observers.length > 0));
 
     // Re-attach the resize listener:
     this.addResizeListener();
+
+    // Emit change event:
+    if (this.changeEmitter.observers.length > 0) {
+      this.changeEmitter.emit(
+        (this.originalText.length === finalLength) ? null : finalLength - this.ellipsisCharacters.length
+      );
+    }
   }
 
 
