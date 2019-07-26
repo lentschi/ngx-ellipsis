@@ -2,7 +2,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 
 import { AppComponent } from './app.component';
-import { EllipsisModule } from 'projects/ngx-ellipsis/src/public_api';
+import { EllipsisModule } from '../../projects/ngx-ellipsis/src/public_api';
 
 @NgModule({
   declarations: [

@@ -4,6 +4,10 @@ Plugin for angular (>= 6.0.0) providing a directive to display an ellipsis if th
 
 Supports text only (no html contents)!
 
+## Demo
+
+For a demo either just checkout this project and run `npm install && npm run start` or visit [the StackBlitz demo page](https://stackblitz.com/github/lentschi/ngx-ellipsis?file=src%2Fapp%2Fapp.component.html).
+
 ## Installation
 
 For use in an existing angular project run `npm install ngx-ellipsis --save`.

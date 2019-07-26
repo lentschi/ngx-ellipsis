@@ -3,7 +3,10 @@
   "dest": "../../dist/ngx-ellipsis",
   "deleteDestPath": false,
   "lib": {
-    "entryFile": "src/public_api.ts"
+    "entryFile": "src/public_api.ts",
+    "umdModuleIds": {
+      "element-resize-detector": "elementResizeDetectorMaker"
+    }
   },
   "whitelistedNonPeerDependencies": ["element-resize-detector"]
 }

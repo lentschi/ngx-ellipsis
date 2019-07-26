@@ -11,7 +11,7 @@ import {
   AfterViewInit,
   OnDestroy
 } from '@angular/core';
-import * as elementResizeDetectorMaker from 'element-resize-detector';
+import elementResizeDetectorMaker from 'element-resize-detector';
 
 /**
  * Directive to truncate the contained text, if it exceeds the element's boundaries
@@ -282,8 +282,7 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
    */
   private addElementResizeListener(scrollStrategy = true) {
     if (!EllipsisDirective.elementResizeDetector) {
-      const maker: any = elementResizeDetectorMaker;
-      EllipsisDirective.elementResizeDetector = maker({ strategy: scrollStrategy ? 'scroll' : 'object' });
+      EllipsisDirective.elementResizeDetector = elementResizeDetectorMaker({ strategy: scrollStrategy ? 'scroll' : 'object' });
     }
 
 
