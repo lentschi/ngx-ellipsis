@@ -175,7 +175,7 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
 
     // store the original contents of the element:
     this.elem = this.elementRef.nativeElement;
-    if (this.ellipsisContent) {
+    if (typeof this.ellipsisContent !== 'undefined' && this.ellipsisContent !== null) {
       this.originalText = EllipsisDirective.escapeHtml(this.ellipsisContent);
     } else if (!this.originalText) {
       this.originalText = this.elem.innerText;

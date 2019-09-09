@@ -26,6 +26,20 @@ class TestComponent {
   onEllipsisChange(_truncatedAt: number) { }
 }
 
+@Component({
+  selector: 'ellipsis-number-test-cmp',
+  template: `
+    <div
+        style="width: 100px; height:100px;"
+        id="ellipsisNumberTestDynamic"
+        ellipsis
+        [ellipsis-content]="htmlContent"></div>
+  `
+})
+class NumberTestComponent {
+  htmlContent = 0;
+}
+
 describe('EllipsisDirective', () => {
   let fixture: ComponentFixture<TestComponent>;
   let componentInstance: TestComponent;
@@ -35,6 +49,7 @@ describe('EllipsisDirective', () => {
     TestBed.configureTestingModule({
       declarations: [
         TestComponent,
+        NumberTestComponent,
         EllipsisDirective
       ],
       providers: [
@@ -105,6 +120,28 @@ describe('EllipsisDirective', () => {
     fixture.detectChanges();
     await fixture.whenStable();
     expect(ellipsisDiv.innerText).toBe('');
+  }));
+
+  it('should handle numbers graciously', async(async () => {
+    const numberFixture = TestBed.createComponent(NumberTestComponent);
+    const numberComponentInstance = numberFixture.componentInstance;
+
+    numberFixture.detectChanges();
+    await numberFixture.whenStable();
+
+    const compiled = numberFixture.debugElement.nativeElement;
+    const ellipsisDiv = compiled.querySelector('#ellipsisNumberTestDynamic > div');
+    numberFixture.detectChanges();
+    await numberFixture.whenStable();
+
+    // check if zero works upon initialization - without ngOnChanges
+    // (s. https://github.com/lentschi/ngx-ellipsis/issues/26):
+    expect(ellipsisDiv.innerText).toBe('0');
+
+    numberComponentInstance.htmlContent = Math.PI;
+    numberFixture.detectChanges();
+    await numberFixture.whenStable();
+    expect(ellipsisDiv.innerText).toBe('3.141592653...');
   }));
 });
 
