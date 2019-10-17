@@ -151,7 +151,7 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
   /**
    * The directive's constructor
    */
-  public constructor(private elementRef: ElementRef, private renderer: Renderer2, private ngZone: NgZone) { }
+  public constructor(private elementRef: ElementRef<HTMLElement>, private renderer: Renderer2, private ngZone: NgZone) { }
 
   /**
    * Angular's init view life cycle hook.
@@ -178,7 +178,7 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
     if (typeof this.ellipsisContent !== 'undefined' && this.ellipsisContent !== null) {
       this.originalText = EllipsisDirective.escapeHtml(this.ellipsisContent);
     } else if (!this.originalText) {
-      this.originalText = this.elem.innerText;
+      this.originalText = (typeof this.elem.innerText !== 'undefined') ? this.elem.innerText : this.elem.textContent;
     }
 
     // add a wrapper div (required for resize events to work properly):
@@ -236,7 +236,7 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
    */
   private addResizeListener(triggerNow = false) {
     if (typeof (this.resizeDetectionStrategy) === 'undefined') {
-      this.resizeDetectionStrategy = '';
+      this.resizeDetectionStrategy = typeof window !== 'undefined' ? '' : 'window';
     }
 
     switch (this.resizeDetectionStrategy) {

@@ -55,6 +55,10 @@ You may add the following attributes to change the directive's behavior:
 | __ellipsis-click-more__ | Event emitter - If set, the text defined by the `ellipsis`  attribute will be converted into a clickable link. For example `(ellipsis-click-more)="moreClicked()"` will call your component's `moreClicked()` method when the user clicks on the link.|
 | __ellipsis-change__ | Event emitter - Will be emitted whenever the ellipsis has been recalculated (depending on `ellipsis-resize-detection`). If the text had to be truncated the position of the last visible character will be emitted, else `null`.|
 
+## Angular SSR (server side rendering)
+
+With angular SSR the `element-resize-detector-*` detection strategies won't work. So `ellipsis-resize-detection` will default to `window` if there is no window object. (May seem crazy, but `window` uses angular's `@HostListener` to get the window object of the client.)
+
 ## Build & publish on npm
 
 In case you want to contribute/fork:
@@ -69,6 +73,7 @@ In case you want to contribute/fork:
 ## Running unit tests
 
 Run `npm run test ngx-ellipsis` to execute the unit tests via [Karma](https://karma-runner.github.io).
+
 
 ## Thank you...
 
