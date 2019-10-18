@@ -9,9 +9,12 @@ import {
   HostListener,
   OnChanges,
   AfterViewInit,
-  OnDestroy
+  OnDestroy,
+  Inject,
+  PLATFORM_ID
 } from '@angular/core';
 import elementResizeDetectorMaker from 'element-resize-detector';
+import { isPlatformBrowser } from '@angular/common';
 
 /**
  * Directive to truncate the contained text, if it exceeds the element's boundaries
@@ -151,13 +154,25 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
   /**
    * The directive's constructor
    */
-  public constructor(private elementRef: ElementRef, private renderer: Renderer2, private ngZone: NgZone) { }
+  public constructor(
+    private elementRef: ElementRef<HTMLElement>,
+    private renderer: Renderer2,
+    private ngZone: NgZone,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) { }
 
   /**
    * Angular's init view life cycle hook.
    * Initializes the element for displaying the ellipsis.
    */
   ngAfterViewInit() {
+    if (!isPlatformBrowser(this.platformId)) {
+      // in angular universal we don't have access to the ugly
+      // DOM manipulation properties we sadly need to access here,
+      // so wait until we're in the browser:
+      return;
+    }
+
     // let the ellipsis characters default to '...':
     if (this.ellipsisCharacters === '') {
       this.ellipsisCharacters = '...';
