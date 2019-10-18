@@ -42,7 +42,7 @@ Anywhere in your template:
 <div style="width: 100px; height: 100px;" ellipsis [ellipsis-content]="yourDynamicContent"></div>
 ```
 
-As you can see, you need to defined the dimensions of you're element yourself. (ngx-ellipsis doesn't automatically add any element styles.) But of course you don't need to use fixed widths/heights. E.g. flex layout shold work just fine.
+As you can see, you need to define the dimensions of you're element yourself. (ngx-ellipsis doesn't automatically add any element styles.) But of course you don't need to use fixed widths/heights like in these examples. Flex layout shold work just fine for example.
 
 ### Extra options
 
