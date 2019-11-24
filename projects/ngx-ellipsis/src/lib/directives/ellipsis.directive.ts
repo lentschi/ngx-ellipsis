@@ -337,15 +337,34 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
       return this.originalText;
     }
 
+    let match: RegExpExecArray;
+    const specialCharacterRanges: {from: number, to: number}[] = [];
+    const specialCharacterRegex = /&.+?;/g;
+    while ((match = specialCharacterRegex.exec(this.originalText)) !== null) {
+      specialCharacterRanges.push({
+        from: match.index,
+        to: match.index + match[0].length
+      });
+    }
+
     const truncatedText = this.originalText.substr(0, max);
-    if (this.ellipsisWordBoundaries === '[]' || this.originalText.charAt(max).match(this.ellipsisWordBoundaries)) {
+    if ((this.ellipsisWordBoundaries === '[]'
+        || (this.originalText.charAt(max).match(this.ellipsisWordBoundaries)))
+        && !specialCharacterRanges.some(
+          range => range.from <= max && range.to >= max
+      )) {
       return truncatedText + this.ellipsisCharacters;
     }
 
     let i = max - 1;
-    while (i > 0 && !truncatedText.charAt(i).match(this.ellipsisWordBoundaries)) {
+    while (i > 0 && ((this.ellipsisWordBoundaries !== '[]' && !truncatedText.charAt(i).match(this.ellipsisWordBoundaries))
+      || specialCharacterRanges.some(
+        range => range.from <= i && range.to >= i
+      )
+    )) {
       i--;
     }
+
     return truncatedText.substr(0, i) + this.ellipsisCharacters;
   }
 
@@ -357,6 +376,7 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
    */
   private truncateText(max: number, addMoreListener = false): number {
     const text = this.getTruncatedText(max);
+    console.log(text);
     this.renderer.setProperty(this.innerElem, 'innerHTML', text);
 
     if (!addMoreListener) {
