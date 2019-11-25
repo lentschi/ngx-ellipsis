@@ -12,16 +12,21 @@ jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000;
       Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt
     </div>
     <div
-        style="width: 100px; height:100px;"
         id="ellipsisTestDynamic"
         ellipsis
-        ellipsis-word-boundaries=" \n"
+        [ngStyle]="styles"
+        [ellipsis-word-boundaries]="wordBoundaries"
         [ellipsis-content]="htmlContent"
         (ellipsis-change)="onEllipsisChange($event)"></div>
   `
 })
 class TestComponent {
   htmlContent = '<b>Lorem ipsum</b> dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt';
+  wordBoundaries = ' \n';
+  styles = {
+    width: '100px',
+    height: '100px'
+  };
 
   onEllipsisChange(_truncatedAt: number) { }
 }
@@ -107,6 +112,16 @@ describe('EllipsisDirective', () => {
     fixture.detectChanges();
     await fixture.whenStable();
     expect(ellipsisDiv.innerText).toBe('Lorem ipsum dolor <b>sit amet</b>, consetetur sadipscing...');
+
+    // Check that special characters aren't falsely separated
+    // (see https://github.com/lentschi/ngx-ellipsis/issues/29):
+    componentInstance.htmlContent = `C'est l'homme&nbsp;qui a vu <b>l'homme</b> qui a vu l'ours.`;
+    componentInstance.wordBoundaries = '';
+    componentInstance.styles.width = '390px';
+    componentInstance.styles.height = '30px';
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(ellipsisDiv.innerText).toBe(`C'est l'homme&nbsp;qui a vu <b>l'homme</b> qui a vu l'...`);
   }));
 
   it('should handle null graciously', async(async () => {

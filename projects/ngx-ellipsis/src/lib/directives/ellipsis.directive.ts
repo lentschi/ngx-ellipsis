@@ -67,9 +67,9 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
   /**
    * The ellipsis-content html attribute
    * If passed this is used as content, else contents
-   * are fetched from innerHTML
+   * are fetched from textContent
    */
-  @Input('ellipsis-content') ellipsisContent: string = null;
+  @Input('ellipsis-content') ellipsisContent: string | number = null;
 
   /**
    * The ellipsis-word-boundaries html attribute
@@ -134,21 +134,16 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
   }
 
   /**
-   * Escape html special characters
-   * @param unsafe string potentially containing special characters
+   * Convert ellipsis input to string
+   * @param input string potentially containing special characters
    * @return       escaped string
    */
-  private static escapeHtml(unsafe: string): string {
-    if (unsafe === undefined || unsafe === null) {
+  private static convertEllipsisInputToString(input: string | number): string {
+    if (typeof input === 'undefined' || input === null) {
       return '';
     }
 
-    return String(unsafe)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#039;');
+    return String(input);
   }
 
   /**
@@ -191,9 +186,9 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
     // store the original contents of the element:
     this.elem = this.elementRef.nativeElement;
     if (typeof this.ellipsisContent !== 'undefined' && this.ellipsisContent !== null) {
-      this.originalText = EllipsisDirective.escapeHtml(this.ellipsisContent);
+      this.originalText = EllipsisDirective.convertEllipsisInputToString(this.ellipsisContent);
     } else if (!this.originalText) {
-      this.originalText = this.elem.innerText;
+      this.originalText = this.elem.textContent.trim();
     }
 
     // add a wrapper div (required for resize events to work properly):
@@ -216,11 +211,11 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
   ngOnChanges() {
     if (!this.elem
       || typeof this.ellipsisContent === 'undefined'
-      || this.originalText === EllipsisDirective.escapeHtml(this.ellipsisContent)) {
+      || this.originalText === EllipsisDirective.convertEllipsisInputToString(this.ellipsisContent)) {
       return;
     }
 
-    this.originalText = EllipsisDirective.escapeHtml(this.ellipsisContent);
+    this.originalText = EllipsisDirective.convertEllipsisInputToString(this.ellipsisContent);
     this.applyEllipsis();
   }
 
@@ -357,7 +352,7 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
    */
   private truncateText(max: number, addMoreListener = false): number {
     const text = this.getTruncatedText(max);
-    this.renderer.setProperty(this.innerElem, 'innerHTML', text);
+    this.renderer.setProperty(this.innerElem, 'textContent', text);
 
     if (!addMoreListener) {
       return text.length;
