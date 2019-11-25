@@ -135,8 +135,8 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
 
   /**
    * Convert ellipsis input to string
-   * @param input string potentially containing special characters
-   * @return       escaped string
+   * @param input string or number to be displayed as an ellipsis
+   * @return      input converted to string
    */
   private static convertEllipsisInputToString(input: string | number): string {
     if (typeof input === 'undefined' || input === null) {
