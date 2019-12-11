@@ -12,3 +12,20 @@
   <div class="sample" ellipsis [ellipsis-content]="longText"></div>
   <div class="sample small" ellipsis [ellipsis-content]="number"></div>
 </div>
+
+<h2>With a "more" click listener</h2>
+<div *ngIf="showEllipsis; else noEllipsis" class="samples fixed">
+  <div
+    ellipsis="... Show more!"
+    [ellipsis-content]="longText"
+    (ellipsis-click-more)="showEllipsis = false"
+    class="sample"></div>
+</div>
+
+<ng-template #noEllipsis>
+  <div class="longText">
+    {{longText}}
+    <button (click)="showEllipsis = true">Show less</button>
+  </div>
+</ng-template>
+

@@ -173,10 +173,6 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
       this.ellipsisCharacters = '...';
     }
 
-    if (this.moreClickEmitter.observers.length > 0) {
-      this.ellipsisCharacters = `<a href="#" class="ngx-ellipsis-more">${this.ellipsisCharacters}</a>`;
-    }
-
     // perform regex replace on word boundaries:
     if (!this.ellipsisWordBoundaries) {
       this.ellipsisWordBoundaries = '';
@@ -327,21 +323,21 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
    * @param max the maximum length the text may have
    * @return string       the truncated string
    */
-  private getTruncatedText(max: number): string {
+  private getTruncatedText(max: number, appendEllipsisCharacters = true): string {
     if (!this.originalText || this.originalText.length <= max) {
       return this.originalText;
     }
 
     const truncatedText = this.originalText.substr(0, max);
     if (this.ellipsisWordBoundaries === '[]' || this.originalText.charAt(max).match(this.ellipsisWordBoundaries)) {
-      return truncatedText + this.ellipsisCharacters;
+      return truncatedText + (appendEllipsisCharacters ? this.ellipsisCharacters : '');
     }
 
     let i = max - 1;
     while (i > 0 && !truncatedText.charAt(i).match(this.ellipsisWordBoundaries)) {
       i--;
     }
-    return truncatedText.substr(0, i) + this.ellipsisCharacters;
+    return truncatedText.substr(0, i) + (appendEllipsisCharacters ? this.ellipsisCharacters : '');
   }
 
   /**
@@ -351,7 +347,7 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
    * @returns length of remaining text (including the ellipsisCharacters if they were added)
    */
   private truncateText(max: number, addMoreListener = false): number {
-    const text = this.getTruncatedText(max);
+    const text = this.getTruncatedText(max, !addMoreListener);
     this.renderer.setProperty(this.innerElem, 'textContent', text);
 
     if (!addMoreListener) {
@@ -361,14 +357,18 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
     // Remove any existing more click listener:
     if (this.destroyMoreClickListener) {
       this.destroyMoreClickListener();
+      this.destroyMoreClickListener = null;
     }
 
     // If the text has been truncated, add a more click listener:
     if (text !== this.originalText) {
-      this.destroyMoreClickListener = this.renderer.listen(this.innerElem, 'click', (e: MouseEvent) => {
-        if (!e.target || (<HTMLElement> e.target).className !== 'ngx-ellipsis-more') {
-          return;
-        }
+      const moreAnchor = <HTMLAnchorElement> this.renderer.createElement('a');
+      moreAnchor.className = 'ngx-ellipsis-more';
+      moreAnchor.href = '#';
+      moreAnchor.textContent = this.ellipsisCharacters;
+      this.renderer.appendChild(this.innerElem, moreAnchor);
+
+      this.destroyMoreClickListener = this.renderer.listen(moreAnchor, 'click', (e: MouseEvent) => {
         e.preventDefault();
         this.moreClickEmitter.emit(e);
       });

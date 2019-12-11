@@ -31,3 +31,8 @@
 .samples.flex .sample:hover, .samples.flex .small:hover {
   resize: vertical;
 }
+
+.longText {
+  width: 200px;
+  margin: 30px;
+}
