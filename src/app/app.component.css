@@ -36,3 +36,7 @@
   width: 200px;
   margin: 30px;
 }
+
+.ngx-ellipsis-more {
+  padding-left: 3px;
+}

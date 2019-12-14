@@ -46,6 +46,11 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
   private innerElem: any;
 
   /**
+   * Anchor tag wrapping the `ellipsisCharacters`
+   */
+  private moreAnchor: HTMLAnchorElement;
+
+  /**
    * Whether the ellipsis should be applied on window resize
    */
   private applyOnWindowResize = false;
@@ -172,6 +177,12 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
     if (this.ellipsisCharacters === '') {
       this.ellipsisCharacters = '...';
     }
+
+    // create more anchor element:
+    this.moreAnchor = <HTMLAnchorElement> this.renderer.createElement('a');
+    this.moreAnchor.className = 'ngx-ellipsis-more';
+    this.moreAnchor.href = '#';
+    this.moreAnchor.textContent = this.ellipsisCharacters;
 
     // perform regex replace on word boundaries:
     if (!this.ellipsisWordBoundaries) {
@@ -323,58 +334,61 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
    * @param max the maximum length the text may have
    * @return string       the truncated string
    */
-  private getTruncatedText(max: number, appendEllipsisCharacters = true): string {
+  private getTruncatedText(max: number): string {
     if (!this.originalText || this.originalText.length <= max) {
       return this.originalText;
     }
 
     const truncatedText = this.originalText.substr(0, max);
     if (this.ellipsisWordBoundaries === '[]' || this.originalText.charAt(max).match(this.ellipsisWordBoundaries)) {
-      return truncatedText + (appendEllipsisCharacters ? this.ellipsisCharacters : '');
+      return truncatedText;
     }
 
     let i = max - 1;
     while (i > 0 && !truncatedText.charAt(i).match(this.ellipsisWordBoundaries)) {
       i--;
     }
-    return truncatedText.substr(0, i) + (appendEllipsisCharacters ? this.ellipsisCharacters : '');
+    return truncatedText.substr(0, i);
   }
 
   /**
    * Set the truncated text to be displayed in the inner div
    * @param max the maximum length the text may have
-   * @param addMoreListener=false listen for click on the ellipsisCharacters if the text has been truncated
-   * @returns length of remaining text (including the ellipsisCharacters if they were added)
+   * @param addMoreListener=false listen for click on the ellipsisCharacters anchor tag if the text has been truncated
+   * @returns length of remaining text (excluding the ellipsisCharacters, if they were added)
    */
   private truncateText(max: number, addMoreListener = false): number {
-    const text = this.getTruncatedText(max, !addMoreListener);
+    let text = this.getTruncatedText(max);
+    const truncatedLength = text.length;
+    const textTruncated = (truncatedLength !== this.originalText.length);
+
+    if (textTruncated && !this.showMoreLink) {
+      text += this.ellipsisCharacters;
+    }
+
     this.renderer.setProperty(this.innerElem, 'textContent', text);
 
-    if (!addMoreListener) {
-      return text.length;
+    if (textTruncated && this.showMoreLink) {
+      this.renderer.appendChild(this.innerElem, this.moreAnchor);
     }
 
     // Remove any existing more click listener:
     if (this.destroyMoreClickListener) {
       this.destroyMoreClickListener();
-      this.destroyMoreClickListener = null;
     }
 
     // If the text has been truncated, add a more click listener:
-    if (text !== this.originalText) {
-      const moreAnchor = <HTMLAnchorElement> this.renderer.createElement('a');
-      moreAnchor.className = 'ngx-ellipsis-more';
-      moreAnchor.href = '#';
-      moreAnchor.textContent = this.ellipsisCharacters;
-      this.renderer.appendChild(this.innerElem, moreAnchor);
-
-      this.destroyMoreClickListener = this.renderer.listen(moreAnchor, 'click', (e: MouseEvent) => {
+    if (addMoreListener && textTruncated) {
+      this.destroyMoreClickListener = this.renderer.listen(this.moreAnchor, 'click', (e: MouseEvent) => {
+        if (!e.target || (<HTMLElement> e.target).className !== 'ngx-ellipsis-more') {
+          return;
+        }
         e.preventDefault();
         this.moreClickEmitter.emit(e);
       });
     }
 
-    return text.length;
+    return truncatedLength;
   }
 
   /**
@@ -391,7 +405,7 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
     });
 
     // Apply the best length:
-    const finalLength = this.truncateText(maxLength, (this.moreClickEmitter.observers.length > 0));
+    const finalLength = this.truncateText(maxLength, this.showMoreLink);
 
     // Re-attach the resize listener:
     this.addResizeListener();
@@ -399,7 +413,7 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
     // Emit change event:
     if (this.changeEmitter.observers.length > 0) {
       this.changeEmitter.emit(
-        (this.originalText.length === finalLength) ? null : finalLength - this.ellipsisCharacters.length
+        (this.originalText.length === finalLength) ? null : finalLength
       );
     }
   }
@@ -421,5 +435,12 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
     this.elem.style.overflow = currentOverflow;
 
     return isOverflowing;
+  }
+
+  /**
+   * Whether the `ellipsisCharacters` are to be wrapped inside an anchor tag (if they are shown at all)
+   */
+  private get showMoreLink(): boolean {
+    return (this.moreClickEmitter.observers.length > 0);
   }
 }
