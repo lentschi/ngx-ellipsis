@@ -5,12 +5,21 @@ import { ComponentFixtureAutoDetect } from '@angular/core/testing';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000;
 
+
 @Component({
   selector: 'ellipsis-test-cmp',
   template: `
     <div style="width: 100px; height:50px;" id="ellipsisTest" ellipsis>
       Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt
     </div>
+  `
+})
+class StaticTestComponent {
+}
+
+@Component({
+  selector: 'ellipsis-test-cmp',
+  template: `
     <div
         id="ellipsisTestDynamic"
         ellipsis
@@ -20,7 +29,7 @@ jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000;
         (ellipsis-change)="onEllipsisChange($event)"></div>
   `
 })
-class TestComponent {
+class DynamicTestComponent {
   htmlContent = '<b>Lorem ipsum</b> dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt';
   wordBoundaries = ' \n';
   styles = {
@@ -46,29 +55,23 @@ class NumberTestComponent {
 }
 
 describe('EllipsisDirective', () => {
-  let fixture: ComponentFixture<TestComponent>;
-  let componentInstance: TestComponent;
-  let changeSpy: jasmine.Spy;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       declarations: [
-        TestComponent,
+        DynamicTestComponent,
         NumberTestComponent,
+        StaticTestComponent,
         EllipsisDirective
       ],
       providers: [
         { provide: ComponentFixtureAutoDetect, useValue: true }
       ]
     });
-
-    fixture = TestBed.createComponent(TestComponent);
-    componentInstance = fixture.componentInstance;
-
-    changeSpy = spyOn(componentInstance, 'onEllipsisChange');
   }));
 
   it('should create a ellipsis', async(async () => {
+    const fixture = TestBed.createComponent(StaticTestComponent);
     fixture.detectChanges();
     await fixture.whenStable();
     const compiled = fixture.debugElement.nativeElement;
@@ -77,6 +80,10 @@ describe('EllipsisDirective', () => {
   }));
 
   it('should emit details about the ellipsis', async(async () => {
+    const fixture = TestBed.createComponent(DynamicTestComponent);
+    const componentInstance = fixture.componentInstance;
+    const changeSpy = spyOn(componentInstance, 'onEllipsisChange');
+
     fixture.detectChanges();
     await fixture.whenStable();
     componentInstance.htmlContent = 'Test';
@@ -96,6 +103,9 @@ describe('EllipsisDirective', () => {
   }));
 
   it('should create a ellipsis escaping html content', async(async () => {
+    const fixture = TestBed.createComponent(DynamicTestComponent);
+    const componentInstance = fixture.componentInstance;
+
     fixture.detectChanges();
     await fixture.whenStable();
     const compiled = fixture.debugElement.nativeElement;
@@ -125,6 +135,9 @@ describe('EllipsisDirective', () => {
   }));
 
   it('should handle null graciously', async(async () => {
+    const fixture = TestBed.createComponent(DynamicTestComponent);
+    const componentInstance = fixture.componentInstance;
+
     fixture.detectChanges();
     await fixture.whenStable();
     const compiled = fixture.debugElement.nativeElement;
