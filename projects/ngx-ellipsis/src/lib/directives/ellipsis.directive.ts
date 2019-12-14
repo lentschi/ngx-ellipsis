@@ -375,6 +375,7 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
     // Remove any existing more click listener:
     if (this.destroyMoreClickListener) {
       this.destroyMoreClickListener();
+      this.destroyMoreClickListener = null;
     }
 
     // If the text has been truncated, add a more click listener:
