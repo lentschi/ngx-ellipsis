@@ -61,8 +61,8 @@ You may add the following attributes to change the directive's behavior:
 
 In case you want to contribute/fork:
 
-1. Run `npm install --prefix ./projects/ngx-ellipsis`
-1. Adept version and author in `./projects/ngx-ellipsis/package.json`.
+1. Run `npm install`
+1. Adept version and author in `./projects/ngx-ellipsis/package.json` and commit the changes to your fork.
 1. Run `npm run build-lib` which outputs the build to `./dist/ngx-ellipsis`.
 1. Copy README.md to `./dist/ngx-ellipsis` and modify it accordingly.
 1. Run `cd ./dist/ngx-ellipsis && npm publish`.
@@ -74,7 +74,7 @@ Run `npm run test ngx-ellipsis` to execute the unit tests via [Karma](https://ka
 
 ## Thank you...
 
-- ... __Lucas Wiener__ for writing the [element-resize-detector](https://github.com/wnr/element-resize-detector) package which are internally used by this module.
+- ... __Lucas Wiener__ for writing the [element-resize-detector](https://github.com/wnr/element-resize-detector) package which is internally used by this module.
 
 ## License
 

@@ -10,11 +10,11 @@
     "url": "https://github.com/lentschi/ngx-ellipsis"
   },
   "peerDependencies": {
-    "@angular/common": ">=6.0.0 <9.0.0 || >7.0.0-beta <9.0.0",
-    "@angular/core": ">=6.0.0 <9.0.0 || >7.0.0-beta <9.0.0"
+    "@angular/common": ">=6.0.0 <10.0.0 || >7.0.0-beta <10.0.0",
+    "@angular/core": ">=6.0.0 <10.0.0 || >7.0.0-beta <10.0.0"
   },
   "dependencies": {
-    "element-resize-detector": "^1.1.15"
+    "element-resize-detector": "^1.2.1"
   },
   "devDependencies": {
     "@types/element-resize-detector": "^1.1.0"

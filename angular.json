@@ -163,5 +163,8 @@
       }
     }
   },
-  "defaultProject": "ngx-ellipsis-demo"
+  "defaultProject": "ngx-ellipsis-demo",
+  "cli": {
+    "analytics": false
+  }
 }
