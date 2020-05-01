@@ -6,7 +6,6 @@ import {
   Output,
   EventEmitter,
   NgZone,
-  HostListener,
   OnChanges,
   AfterViewInit,
   OnDestroy,
@@ -49,11 +48,6 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
    * Anchor tag wrapping the `ellipsisCharacters`
    */
   private moreAnchor: HTMLAnchorElement;
-
-  /**
-   * Whether the ellipsis should be applied on window resize
-   */
-  private applyOnWindowResize = false;
 
   /**
    * Remove function for the currently registered click listener
@@ -261,7 +255,7 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
         // Users will trigger applyEllipsis via the public API
         break;
       case 'window':
-        this.applyOnWindowResize = true;
+        this.addWindowResizeListener();
         break;
       case 'element-resize-detector-object':
         this.addElementResizeListener(false);
@@ -284,11 +278,19 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
     }
   }
 
-  @HostListener('window:resize', ['$event']) onResize(event: Event) {
-    this.ngZone.run(() => {
-      if (this.applyOnWindowResize) {
+  /**
+   * Remove the window listener registered by a previous call to `addWindowResizeListener()`.
+   */
+  private removeWindowResizeListener: () => void;
+
+  /**
+   * Set up an event listener to call applyEllipsis() whenever the window gets resized.
+   */
+  private addWindowResizeListener() {
+    this.removeWindowResizeListener = this.renderer.listen('window', 'resize', () => {
+      this.ngZone.run(() => {
         this.applyEllipsis();
-      }
+      });
     });
   }
 
@@ -324,7 +326,7 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
         EllipsisDirective.elementResizeDetector.removeAllListeners(this.elem);
       }
     } else {
-      this.applyOnWindowResize = false;
+      this.removeWindowResizeListener();
     }
   }
 
