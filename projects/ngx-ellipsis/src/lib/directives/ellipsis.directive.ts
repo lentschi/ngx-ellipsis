@@ -56,6 +56,11 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
   private destroyMoreClickListener: () => void;
 
   /**
+   * Remove the window listener registered by a previous call to `addWindowResizeListener()`.
+   */
+  private removeWindowResizeListener: () => void;
+
+  /**
    * The ellipsis html attribute
    * If anything is passed, this will be used as a string to append to
    * the truncated contents.
@@ -277,11 +282,6 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
       this.applyEllipsis();
     }
   }
-
-  /**
-   * Remove the window listener registered by a previous call to `addWindowResizeListener()`.
-   */
-  private removeWindowResizeListener: () => void;
 
   /**
    * Set up an event listener to call applyEllipsis() whenever the window gets resized.
