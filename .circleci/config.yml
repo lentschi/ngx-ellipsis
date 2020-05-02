@@ -1,0 +1,17 @@
+version: 2.1
+jobs:
+  build-and-test:
+    docker: # run the steps with Docker
+      - image: circleci/node:12.16-buster-browsers
+    steps:
+      - checkout
+      - run:
+          name: install-node-packages
+          command: "npm install"
+      - run:
+          name: run-angular-lib-tests
+          command: "npm run test -- --browsers=ChromeHeadless --watch=false ngx-ellipsis"
+workflows:
+    build-and-test:
+      jobs:
+        - build-and-test

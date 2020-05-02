@@ -5,6 +5,15 @@ import { ComponentFixtureAutoDetect } from '@angular/core/testing';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000;
 
+const ELLIPSIS_TEST_CSS = `
+  * {
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 16px;
+    letter-spacing: 0.01px;
+    word-spacing: 0.01px;
+  }
+`;
+
 
 @Component({
   selector: 'ellipsis-test-cmp',
@@ -12,7 +21,8 @@ jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000;
     <div style="width: 100px; height:50px;" id="ellipsisTest" ellipsis>
       Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt
     </div>
-  `
+  `,
+  styles: [ ELLIPSIS_TEST_CSS ]
 })
 class StaticTestComponent {
 }
@@ -27,7 +37,8 @@ class StaticTestComponent {
         [ellipsis-word-boundaries]="wordBoundaries"
         [ellipsis-content]="htmlContent"
         (ellipsis-change)="onEllipsisChange($event)"></div>
-  `
+  `,
+  styles: [ ELLIPSIS_TEST_CSS ]
 })
 class DynamicTestComponent {
   htmlContent = '<b>Lorem ipsum</b> dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt';
@@ -48,7 +59,8 @@ class DynamicTestComponent {
         id="ellipsisNumberTestDynamic"
         ellipsis
         [ellipsis-content]="htmlContent"></div>
-  `
+  `,
+  styles: [ ELLIPSIS_TEST_CSS ]
 })
 class NumberTestComponent {
   htmlContent = 0;
@@ -76,7 +88,7 @@ describe('EllipsisDirective', () => {
     await fixture.whenStable();
     const compiled = fixture.debugElement.nativeElement;
     const ellipsisDiv = compiled.querySelector('#ellipsisTest > div');
-    expect(ellipsisDiv.innerHTML).toBe('Lorem ipsum dolor sit amet...');
+    expect(ellipsisDiv.innerHTML).toBe('Lorem ipsum dolor sit ame...');
   }));
 
   it('should emit details about the ellipsis', async(async () => {
