@@ -137,13 +137,13 @@ describe('EllipsisDirective', () => {
 
     // Check that special characters aren't falsely separated
     // (see https://github.com/lentschi/ngx-ellipsis/issues/29):
-    componentInstance.htmlContent = `C'est l'homme&nbsp;qui a vu <b>l'homme</b> qui a vu l'ours.`;
+    componentInstance.htmlContent = 'C\'est l\'homme&nbsp;qui a vu <b>l\'homme</b> qui a vu l\'ours.';
     componentInstance.wordBoundaries = '';
     componentInstance.styles.width = '390px';
     componentInstance.styles.height = '30px';
     fixture.detectChanges();
     await fixture.whenStable();
-    expect(ellipsisDiv.innerText).toBe(`C'est l'homme&nbsp;qui a vu <b>l'homme</b> qui a vu l'...`);
+    expect(ellipsisDiv.innerText).toBe('C\'est l\'homme&nbsp;qui a vu <b>l\'homme</b> qui a vu l\'...');
   }));
 
   it('should handle null graciously', async(async () => {

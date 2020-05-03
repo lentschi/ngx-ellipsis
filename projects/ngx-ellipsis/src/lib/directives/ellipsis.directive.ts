@@ -271,7 +271,7 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
             `No such ellipsis-resize-detection strategy: '${this.resizeDetectionStrategy}'. Using 'element-resize-detector' instead`
           );
         }
-      // tslint:disable-next-line:no-switch-case-fall-through
+      // eslint-disable-next-line no-fallthrough
       case 'element-resize-detector':
       case '':
         this.addElementResizeListener();

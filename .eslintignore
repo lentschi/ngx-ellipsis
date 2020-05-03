@@ -1,0 +1,5 @@
+node_modules/
+dist/
+
+# not an angular template -> `@angular-eslint/template-parser` can't handle it:
+src/index.html

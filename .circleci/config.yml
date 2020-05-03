@@ -9,6 +9,9 @@ jobs:
           name: install-node-packages
           command: "npm install"
       - run:
+          name: eslint
+          command: "npx eslint --ext .ts,.html --max-warnings 0 ./"
+      - run:
           name: run-angular-lib-tests
           command: "npm run test -- --browsers=ChromeHeadless --watch=false ngx-ellipsis"
 workflows:
