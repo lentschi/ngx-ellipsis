@@ -10,6 +10,10 @@ module.exports = {
       },
       plugins: ['@typescript-eslint', '@angular-eslint'],
       rules: {
+        'indent': ['warn', 2, {
+          'SwitchCase': 1
+        }],
+        'object-curly-spacing': ['warn', 'always'],
         '@typescript-eslint/array-type': 'off',
 
         'arrow-parens': 'off',
