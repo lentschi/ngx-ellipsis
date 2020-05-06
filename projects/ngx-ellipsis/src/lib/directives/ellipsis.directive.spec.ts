@@ -1,6 +1,6 @@
-import { TestBed, async, ComponentFixture } from '@angular/core/testing';
-import {Component, AfterViewChecked} from '@angular/core';
-import {EllipsisDirective} from './ellipsis.directive';
+import { TestBed, async } from '@angular/core/testing';
+import { Component } from '@angular/core';
+import { EllipsisDirective } from './ellipsis.directive';
 import { ComponentFixtureAutoDetect } from '@angular/core/testing';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000;
