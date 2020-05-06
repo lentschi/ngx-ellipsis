@@ -230,7 +230,11 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
    * Remove event listeners
    */
   ngOnDestroy() {
-    this.removeAllListeners();
+    // In angular universal we don't have any listeners hooked up (all requiring ugly DOM manipulation methods),
+    // so we only need to remove them, if we're inside the browser:
+    if (isPlatformBrowser(this.platformId)) {
+      this.removeAllListeners();
+    }
   }
 
   /**
