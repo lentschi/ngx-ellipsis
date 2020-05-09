@@ -84,6 +84,13 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
   @Input('ellipsis-word-boundaries') ellipsisWordBoundaries: string;
 
   /**
+   * The ellipsis-content html attribute
+   * If passed this is used as content, else contents
+   * are fetched from textContent
+   */
+  @Input('ellipsis-substr-fn') ellipsisSubstrFn:  (str: string, from: number, length?: number) => string;
+
+  /**
    * The ellipsis-resize-detection html attribute
    * Algorithm to use to detect element/window resize - any of the following:
    * 'element-resize-detector': (default) Use https://github.com/wnr/element-resize-detector with its 'scroll' strategy
@@ -188,6 +195,12 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
       this.ellipsisWordBoundaries = '';
     }
     this.ellipsisWordBoundaries = '[' + this.ellipsisWordBoundaries.replace(/\\n/, '\n').replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&') + ']';
+
+    if (!this.ellipsisSubstrFn) {
+      this.ellipsisSubstrFn = (str: string, from: number, length?: number) => {
+        return str.substr(from, length);
+      }
+    }
 
     // store the original contents of the element:
     this.elem = this.elementRef.nativeElement;
@@ -345,7 +358,7 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
       return this.originalText;
     }
 
-    const truncatedText = this.originalText.substr(0, max);
+    const truncatedText = this.ellipsisSubstrFn(this.originalText, 0, max);
     if (this.ellipsisWordBoundaries === '[]' || this.originalText.charAt(max).match(this.ellipsisWordBoundaries)) {
       return truncatedText;
     }
@@ -354,7 +367,7 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
     while (i > 0 && !truncatedText.charAt(i).match(this.ellipsisWordBoundaries)) {
       i--;
     }
-    return truncatedText.substr(0, i);
+    return this.ellipsisSubstrFn(truncatedText, 0, i);
   }
 
   /**
