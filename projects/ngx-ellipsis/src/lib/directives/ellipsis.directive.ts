@@ -84,9 +84,9 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
   @Input('ellipsis-word-boundaries') ellipsisWordBoundaries: string;
 
   /**
-   * The ellipsis-content html attribute
-   * If passed this is used as content, else contents
-   * are fetched from textContent
+   * Function to use for string splitting. Defaults to the native `String#substr`.
+   * (This may for example be used to avoid splitting surrogate pairs- used by some emojis -
+   * by providing a lib such as runes.)
    */
   @Input('ellipsis-substr-fn') ellipsisSubstrFn:  (str: string, from: number, length?: number) => string;
 
