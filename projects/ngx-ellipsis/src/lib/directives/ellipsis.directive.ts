@@ -32,12 +32,13 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
   /**
    * The original text (not truncated yet)
    */
-  private originalText: string;
+  private originalContent: HTMLElement;
+
 
   /**
    * The referenced element
    */
-  private elem: any;
+  private elem: HTMLElement;
 
   /**
    * Inner div element (will be auto-created)
@@ -144,17 +145,30 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
     return best;
   }
 
+  private flattenNodes(element: Node): Node[] {
+    const nodes: Node[] = [];
+    for (let i = 0; i < element.childNodes.length; i++) {
+      const child = element.childNodes.item(i);
+      nodes.push(child, ...this.flattenNodes(child));
+    }
+
+    return nodes;
+  }
+
   /**
    * Convert ellipsis input to string
    * @param input string or number to be displayed as an ellipsis
    * @return      input converted to string
    */
-  private static convertEllipsisInputToString(input: string | number): string {
+  private convertEllipsisInputToHTMLElement(input: string | number): HTMLElement {
+    const div = this.renderer.createElement('div');
     if (typeof input === 'undefined' || input === null) {
-      return '';
+      return div;
     }
 
-    return String(input);
+    div.innerHTML = String(input);
+
+    return div;
   }
 
   /**
@@ -205,17 +219,16 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
     // store the original contents of the element:
     this.elem = this.elementRef.nativeElement;
     if (typeof this.ellipsisContent !== 'undefined' && this.ellipsisContent !== null) {
-      this.originalText = EllipsisDirective.convertEllipsisInputToString(this.ellipsisContent);
-    } else if (!this.originalText) {
-      this.originalText = this.elem.textContent.trim();
+      this.originalContent = this.convertEllipsisInputToHTMLElement(this.ellipsisContent);
+    } else if (!this.originalContent) {
+      // TODO: Make this depend on the new input
+      this.originalContent = this.convertEllipsisInputToHTMLElement(this.elem.innerHTML);
     }
 
     // add a wrapper div (required for resize events to work properly):
     this.renderer.setProperty(this.elem, 'innerHTML', '');
-    this.innerElem = this.renderer.createElement('div');
+    this.innerElem = this.originalContent.cloneNode(true);
     this.renderer.addClass(this.innerElem, 'ngx-ellipsis-inner');
-    const text = this.renderer.createText(this.originalText);
-    this.renderer.appendChild(this.innerElem, text);
     this.renderer.appendChild(this.elem, this.innerElem);
 
     // start listening for resize events:
@@ -228,14 +241,15 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
    * and re-render
    */
   ngOnChanges() {
-    if (!this.elem
-      || typeof this.ellipsisContent === 'undefined'
-      || this.originalText === EllipsisDirective.convertEllipsisInputToString(this.ellipsisContent)) {
-      return;
-    }
+    // TODO:
+    // if (!this.elem
+    //   || typeof this.ellipsisContent === 'undefined'
+    //   || this.originalNodes === this.convertEllipsisInputToString(this.ellipsisContent)) {
+    //   return;
+    // }
 
-    this.originalText = EllipsisDirective.convertEllipsisInputToString(this.ellipsisContent);
-    this.applyEllipsis();
+    // this.originalNodes = this.convertEllipsisInputToString(this.ellipsisContent);
+    // this.applyEllipsis();
   }
 
   /**
@@ -353,21 +367,49 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
    * @param max the maximum length the text may have
    * @return string       the truncated string
    */
-  private getTruncatedText(max: number): string {
-    if (!this.originalText || this.originalText.length <= max) {
-      return this.originalText;
+  private getTruncatedContents(max: number): HTMLElement {
+    const currentContent = <HTMLElement> this.originalContent.cloneNode(true);
+    if (!this.originalContent || this.originalContent.textContent.length <= max) {
+      return currentContent;
     }
 
-    const truncatedText = this.ellipsisSubstrFn(this.originalText, 0, max);
-    if (this.ellipsisWordBoundaries === '[]' || this.originalText.charAt(max).match(this.ellipsisWordBoundaries)) {
-      return truncatedText;
+    const nodes = <CharacterData[]> this.flattenNodes(currentContent)
+      .filter(node => node.nodeType === Node.TEXT_NODE);
+
+    let foundIndex = -1;
+    let offset = 0;
+    for (let i = 0; i < nodes.length; i++) {
+      const node = nodes[i];
+      offset += node.data.length;
+      if (offset >= max) {
+        foundIndex = i;
+        break;
+      }
     }
 
-    let i = max - 1;
-    while (i > 0 && !truncatedText.charAt(i).match(this.ellipsisWordBoundaries)) {
-      i--;
+    const foundNode = nodes[foundIndex];
+    foundNode.data = this.ellipsisSubstrFn(foundNode.data, 0, max - offset + foundNode.data.length);
+    for (let i = foundIndex + 1; i < nodes.length; i++) {
+      const node = nodes[i];
+      if (node.data !== '' && node.parentElement !== currentContent && node.parentElement.childNodes.length === 1) {
+        node.parentElement.remove();
+      } else {
+        node.data = '';
+      }
     }
-    return this.ellipsisSubstrFn(truncatedText, 0, i);
+
+    return currentContent;
+
+    // const truncatedText = this.ellipsisSubstrFn(this.originalContent, 0, max);
+    // if (this.ellipsisWordBoundaries === '[]' || this.originalContent.charAt(max).match(this.ellipsisWordBoundaries)) {
+    //   return truncatedText;
+    // }
+
+    // let i = max - 1;
+    // while (i > 0 && !truncatedText.charAt(i).match(this.ellipsisWordBoundaries)) {
+    //   i--;
+    // }
+    // return this.ellipsisSubstrFn(truncatedText, 0, i);
   }
 
   /**
@@ -377,15 +419,15 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
    * @returns length of remaining text (excluding the ellipsisCharacters, if they were added)
    */
   private truncateText(max: number, addMoreListener = false): number {
-    let text = this.getTruncatedText(max);
-    const truncatedLength = text.length;
-    const textTruncated = (truncatedLength !== this.originalText.length);
+    let truncatedContents = this.getTruncatedContents(max);
+    const truncatedLength = truncatedContents.textContent.length;
+    const textTruncated = (truncatedLength !== this.originalContent.textContent.length);
 
     if (textTruncated && !this.showMoreLink) {
-      text += this.ellipsisCharacters;
+      truncatedContents.appendChild(this.renderer.createText(this.ellipsisCharacters));
     }
 
-    this.renderer.setProperty(this.innerElem, 'textContent', text);
+    this.renderer.setProperty(this.innerElem, 'innerHTML', truncatedContents.innerHTML);
 
     if (textTruncated && this.showMoreLink) {
       this.renderer.appendChild(this.innerElem, this.moreAnchor);
@@ -419,13 +461,14 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
     this.removeResizeListener();
 
     // Find the best length by trial and error:
-    const maxLength = EllipsisDirective.numericBinarySearch(this.originalText.length, curLength => {
+    const maxLength = EllipsisDirective.numericBinarySearch(this.originalContent.textContent.length, curLength => {
       this.truncateText(curLength);
       return !this.isOverflowing;
     });
 
     // Apply the best length:
     const finalLength = this.truncateText(maxLength, this.showMoreLink);
+    console.log(this.innerElem.innerHTML, finalLength);
 
     // Re-attach the resize listener:
     this.addResizeListener();
@@ -433,7 +476,7 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
     // Emit change event:
     if (this.changeEmitter.observers.length > 0) {
       this.changeEmitter.emit(
-        (this.originalText.length === finalLength) ? null : finalLength
+        (this.originalContent.textContent.length === finalLength) ? null : finalLength
       );
     }
   }
