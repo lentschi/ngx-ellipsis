@@ -69,52 +69,52 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
   @Input('ellipsis') ellipsisCharacters: string;
 
   /**
-   * The ellipsis-content html attribute
+   * The ellipsisContent html attribute
    * If passed this is used as content, else contents
    * are fetched from textContent
    */
-  @Input('ellipsis-content') ellipsisContent: string | number = null;
+  @Input('ellipsisContent') ellipsisContent: string | number = null;
 
   /**
-   * The ellipsis-word-boundaries html attribute
+   * The ellipsisWordBoundaries html attribute
    * If anything is passed, each character will be interpreted
    * as a word boundary at which the text may be truncated.
    * Else the text may be truncated at any character.
    */
-  @Input('ellipsis-word-boundaries') ellipsisWordBoundaries: string;
+  @Input('ellipsisWordBoundaries') ellipsisWordBoundaries: string;
 
   /**
    * Function to use for string splitting. Defaults to the native `String#substr`.
    * (This may for example be used to avoid splitting surrogate pairs- used by some emojis -
    * by providing a lib such as runes.)
    */
-  @Input('ellipsis-substr-fn') ellipsisSubstrFn:  (str: string, from: number, length?: number) => string;
+  @Input('ellipsisSubstrFn') ellipsisSubstrFn:  (str: string, from: number, length?: number) => string;
 
   /**
-   * The ellipsis-resize-detection html attribute
+   * The ellipsisResizeDetection html attribute
    * Algorithm to use to detect element/window resize - any of the following:
    * 'element-resize-detector': (default) Use https://github.com/wnr/element-resize-detector with its 'scroll' strategy
    * 'element-resize-detector-object': Use https://github.com/wnr/element-resize-detector with its 'object' strategy (deprecated)
    * 'window': Only check if the whole window has been resized/changed orientation by using angular's built-in HostListener
    */
-  @Input('ellipsis-resize-detection') resizeDetectionStrategy:
+  @Input('ellipsisResizeDetection') resizeDetectionStrategy:
     '' | 'manual' | 'element-resize-detector' | 'element-resize-detector-object' | 'window';
 
   /**
-   * The ellipsis-click-more html attribute
+   * The ellipsisClickMore html attribute
    * If anything is passed, the ellipsisCharacters will be
    * wrapped in <a></a> tags and an event handler for the
    * passed function will be added to the link
    */
-  @Output('ellipsis-click-more') moreClickEmitter: EventEmitter<MouseEvent> = new EventEmitter();
+  @Output('ellipsisClickMore') moreClickEmitter: EventEmitter<MouseEvent> = new EventEmitter();
 
 
   /**
-   * The ellipsis-change html attribute
+   * The ellipsisChange html attribute
    * This emits after which index the text has been truncated.
    * If it hasn't been truncated, null is emitted.
    */
-  @Output('ellipsis-change') changeEmitter: EventEmitter<number> = new EventEmitter();
+  @Output('ellipsisChange') changeEmitter: EventEmitter<number> = new EventEmitter();
 
   /**
    * Utility method to quickly find the largest number for
@@ -224,7 +224,7 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
 
   /**
    * Angular's change life cycle hook.
-   * Change original text (if the ellipsis-content has been passed)
+   * Change original text (if the ellipsisContent has been passed)
    * and re-render
    */
   ngOnChanges() {
@@ -285,7 +285,7 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
       default:
         if (typeof (console) !== 'undefined') {
           console.warn(
-            `No such ellipsis-resize-detection strategy: '${this.resizeDetectionStrategy}'. Using 'element-resize-detector' instead`
+            `No such ellipsisResizeDetection strategy: '${this.resizeDetectionStrategy}'. Using 'element-resize-detector' instead`
           );
         }
       // eslint-disable-next-line no-fallthrough

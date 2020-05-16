@@ -34,9 +34,9 @@ class StaticTestComponent {
         id="ellipsisTestDynamic"
         ellipsis
         [ngStyle]="styles"
-        [ellipsis-word-boundaries]="wordBoundaries"
-        [ellipsis-content]="htmlContent"
-        (ellipsis-change)="onEllipsisChange($event)"></div>
+        [ellipsisWordBoundaries]="wordBoundaries"
+        [ellipsisContent]="htmlContent"
+        (ellipsisChange)="onEllipsisChange($event)"></div>
   `,
   styles: [ ELLIPSIS_TEST_CSS ]
 })
@@ -58,7 +58,7 @@ class DynamicTestComponent {
         style="width: 100px; height:100px;"
         id="ellipsisNumberTestDynamic"
         ellipsis
-        [ellipsis-content]="htmlContent"></div>
+        [ellipsisContent]="htmlContent"></div>
   `,
   styles: [ ELLIPSIS_TEST_CSS ]
 })
