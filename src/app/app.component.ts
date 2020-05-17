@@ -6,8 +6,9 @@ import { Component } from '@angular/core';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {
+  active = false;
   title = 'ngx-ellipsis-demo';
-  longText = '<b>Hui<i>Test<em>Lala</em>Lalu</i></b>';
+  longText = '<b>Hui<i>Test<em>Lala</em><br>Lalu</i></b>Bubu';
   number = 12.4564564564564564;
 
   showEllipsis = true;

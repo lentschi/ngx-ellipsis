@@ -10,7 +10,9 @@ import {
   AfterViewInit,
   OnDestroy,
   Inject,
-  PLATFORM_ID
+  PLATFORM_ID,
+  SimpleChange,
+  SimpleChanges
 } from '@angular/core';
 import elementResizeDetectorMaker from 'element-resize-detector';
 import { isPlatformBrowser } from '@angular/common';
@@ -145,11 +147,17 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
     return best;
   }
 
-  private flattenNodes(element: Node): Node[] {
-    const nodes: Node[] = [];
+  private flattenTextAndElementNodes(element: HTMLElement): (CharacterData | HTMLElement)[] {
+    const nodes: (CharacterData | HTMLElement)[] = [];
     for (let i = 0; i < element.childNodes.length; i++) {
       const child = element.childNodes.item(i);
-      nodes.push(child, ...this.flattenNodes(child));
+      if (child instanceof HTMLElement || child instanceof CharacterData) {
+        nodes.push(child);
+
+        if (child instanceof HTMLElement) {
+          nodes.push(...this.flattenTextAndElementNodes(child));
+        }
+      }
     }
 
     return nodes;
@@ -221,7 +229,6 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
     if (typeof this.ellipsisContent !== 'undefined' && this.ellipsisContent !== null) {
       this.originalContent = this.convertEllipsisInputToHTMLElement(this.ellipsisContent);
     } else if (!this.originalContent) {
-      // TODO: Make this depend on the new input
       this.originalContent = this.convertEllipsisInputToHTMLElement(this.elem.innerHTML);
     }
 
@@ -240,16 +247,15 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
    * Change original text (if the ellipsisContent has been passed)
    * and re-render
    */
-  ngOnChanges() {
-    // TODO:
-    // if (!this.elem
-    //   || typeof this.ellipsisContent === 'undefined'
-    //   || this.originalNodes === this.convertEllipsisInputToString(this.ellipsisContent)) {
-    //   return;
-    // }
+  ngOnChanges(changes: SimpleChanges) {
+    if (!this.elem
+      || typeof this.ellipsisContent === 'undefined'
+      || changes.ellipsisContent) {
+      return;
+    }
 
-    // this.originalNodes = this.convertEllipsisInputToString(this.ellipsisContent);
-    // this.applyEllipsis();
+    this.originalContent = this.convertEllipsisInputToHTMLElement(this.ellipsisContent);
+    this.applyEllipsis();
   }
 
   /**
@@ -373,13 +379,18 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
       return currentContent;
     }
 
-    const nodes = <CharacterData[]> this.flattenNodes(currentContent)
-      .filter(node => node.nodeType === Node.TEXT_NODE);
+    const nodes = <(HTMLElement | CharacterData)[]>this.flattenTextAndElementNodes(currentContent)
+      .filter(node => [Node.TEXT_NODE, Node.ELEMENT_NODE].includes(node.nodeType));
 
     let foundIndex = -1;
     let offset = 0;
     for (let i = 0; i < nodes.length; i++) {
       const node = nodes[i];
+
+      if (!(node instanceof CharacterData)) {
+        continue;
+      }
+
       offset += node.data.length;
       if (offset >= max) {
         foundIndex = i;
@@ -387,14 +398,14 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
       }
     }
 
-    const foundNode = nodes[foundIndex];
+    const foundNode = <CharacterData> nodes[foundIndex];
     foundNode.data = this.ellipsisSubstrFn(foundNode.data, 0, max - offset + foundNode.data.length);
     for (let i = foundIndex + 1; i < nodes.length; i++) {
       const node = nodes[i];
-      if (node.data !== '' && node.parentElement !== currentContent && node.parentElement.childNodes.length === 1) {
+      if (node.textContent !== '' && node.parentElement !== currentContent && node.parentElement.childNodes.length === 1) {
         node.parentElement.remove();
       } else {
-        node.data = '';
+        node.remove();
       }
     }
 
