@@ -1,7 +1,10 @@
-<div class="sample" ellipsis [ellipsisContent]="longText"></div>
-<div class="sample" ellipsis>
-  <b>Hui<i>Test<em>Lala</em>Lala</i></b>
-  <button (click)="active = !active">Toggle</button>
+<!-- <div class="sample" ellipsis [ellipsisContent]="longText"></div> -->
+<div class="sample">
+  <span *ellipsis>
+    <button (click)="active = !active">Toggle</button>
+    <b>Hui<i>Test<em>Lala</em>Lala</i></b>
+  </span>
 </div>
+
 <br><br>
 Active: {{active}}

@@ -12,10 +12,16 @@ import {
   Inject,
   PLATFORM_ID,
   SimpleChange,
-  SimpleChanges
+  SimpleChanges,
+  TemplateRef,
+  ViewContainerRef,
+  ComponentFactoryResolver,
+  ComponentFactory,
+  EmbeddedViewRef
 } from '@angular/core';
 import elementResizeDetectorMaker from 'element-resize-detector';
 import { isPlatformBrowser } from '@angular/common';
+import { EllipsisContentComponent } from '../components/ellipsis-content.component';
 
 /**
  * Directive to truncate the contained text, if it exceeds the element's boundaries
@@ -31,21 +37,11 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
    */
   private static elementResizeDetector: elementResizeDetectorMaker.Erd = null;
 
-  /**
-   * The original text (not truncated yet)
-   */
-  private originalContent: HTMLElement;
-
 
   /**
    * The referenced element
    */
   private elem: HTMLElement;
-
-  /**
-   * Inner div element (will be auto-created)
-   */
-  private innerElem: any;
 
   /**
    * Anchor tag wrapping the `ellipsisCharacters`
@@ -63,20 +59,16 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
    */
   private removeWindowResizeListener: () => void;
 
+  private compFactory: ComponentFactory<EllipsisContentComponent>;
+  private initialTextLength: number;
+
   /**
    * The ellipsis html attribute
    * If anything is passed, this will be used as a string to append to
    * the truncated contents.
    * Else '...' will be appended.
    */
-  @Input('ellipsis') ellipsisCharacters: string;
-
-  /**
-   * The ellipsisContent html attribute
-   * If passed this is used as content, else contents
-   * are fetched from textContent
-   */
-  @Input('ellipsisContent') ellipsisContent: string | number = null;
+  @Input('ellipsis') ellipsisCharacters = '';
 
   /**
    * The ellipsisWordBoundaries html attribute
@@ -91,7 +83,7 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
    * (This may for example be used to avoid splitting surrogate pairs- used by some emojis -
    * by providing a lib such as runes.)
    */
-  @Input('ellipsisSubstrFn') ellipsisSubstrFn:  (str: string, from: number, length?: number) => string;
+  @Input('ellipsisSubstrFn') ellipsisSubstrFn: (str: string, from: number, length?: number) => string;
 
   /**
    * The ellipsisResizeDetection html attribute
@@ -163,37 +155,29 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
     return nodes;
   }
 
-  /**
-   * Convert ellipsis input to string
-   * @param input string or number to be displayed as an ellipsis
-   * @return      input converted to string
-   */
-  private convertEllipsisInputToHTMLElement(input: string | number): HTMLElement {
-    const div = this.renderer.createElement('div');
-    if (typeof input === 'undefined' || input === null) {
-      return div;
-    }
-
-    div.innerHTML = String(input);
-
-    return div;
-  }
 
   /**
    * The directive's constructor
    */
   public constructor(
-    private elementRef: ElementRef<HTMLElement>,
+    private templateRef: TemplateRef<any>,
+    private viewContainer: ViewContainerRef,
+    private resolver: ComponentFactoryResolver,
     private renderer: Renderer2,
     private ngZone: NgZone,
     @Inject(PLATFORM_ID) private platformId: Object
-  ) { }
+  ) {
+  }
 
   /**
    * Angular's init view life cycle hook.
    * Initializes the element for displaying the ellipsis.
    */
   ngAfterViewInit() {
+    this.compFactory = this.resolver.resolveComponentFactory(EllipsisContentComponent);
+    this.updateView();
+    this.initialTextLength = this.elem.textContent.length;
+
     if (!isPlatformBrowser(this.platformId)) {
       // in angular universal we don't have access to the ugly
       // DOM manipulation properties we sadly need to access here,
@@ -207,7 +191,7 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
     }
 
     // create more anchor element:
-    this.moreAnchor = <HTMLAnchorElement> this.renderer.createElement('a');
+    this.moreAnchor = <HTMLAnchorElement>this.renderer.createElement('a');
     this.moreAnchor.className = 'ngx-ellipsis-more';
     this.moreAnchor.href = '#';
     this.moreAnchor.textContent = this.ellipsisCharacters;
@@ -224,19 +208,11 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
       }
     }
 
-    // store the original contents of the element:
-    this.elem = this.elementRef.nativeElement;
-    if (typeof this.ellipsisContent !== 'undefined' && this.ellipsisContent !== null) {
-      this.originalContent = this.convertEllipsisInputToHTMLElement(this.ellipsisContent);
-    } else if (!this.originalContent) {
-      this.originalContent = this.convertEllipsisInputToHTMLElement(this.elem.innerHTML);
-    }
-
     // add a wrapper div (required for resize events to work properly):
-    this.renderer.setProperty(this.elem, 'innerHTML', '');
-    this.innerElem = this.originalContent.cloneNode(true);
-    this.renderer.addClass(this.innerElem, 'ngx-ellipsis-inner');
-    this.renderer.appendChild(this.elem, this.innerElem);
+    // this.renderer.setProperty(this.elem, 'innerHTML', '');
+    // this.innerElem = this.originalContent.cloneNode(true);
+    // this.renderer.addClass(this.innerElem, 'ngx-ellipsis-inner');
+    // this.renderer.appendChild(this.elem, this.innerElem);
 
     // start listening for resize events:
     this.addResizeListener(true);
@@ -248,14 +224,14 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
    * and re-render
    */
   ngOnChanges(changes: SimpleChanges) {
-    if (!this.elem
-      || typeof this.ellipsisContent === 'undefined'
-      || changes.ellipsisContent) {
-      return;
-    }
+    // if (!this.elem
+    //   || typeof this.ellipsisContent === 'undefined'
+    //   || changes.ellipsisContent) {
+    //   return;
+    // }
 
-    this.originalContent = this.convertEllipsisInputToHTMLElement(this.ellipsisContent);
-    this.applyEllipsis();
+    // this.originalContent = this.convertEllipsisInputToHTMLElement(this.ellipsisContent);
+    // this.applyEllipsis();
   }
 
   /**
@@ -268,6 +244,13 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
     if (isPlatformBrowser(this.platformId)) {
       this.removeAllListeners();
     }
+  }
+
+  private updateView() {
+    this.viewContainer.clear();
+    const templateView = this.templateRef.createEmbeddedView({});
+    const componentRef = this.viewContainer.createComponent(this.compFactory, null, this.viewContainer.injector, [templateView.rootNodes])
+    this.elem = componentRef.instance.elementRef.nativeElement;
   }
 
   /**
@@ -341,15 +324,16 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
       EllipsisDirective.elementResizeDetector = elementResizeDetectorMaker({ strategy: scrollStrategy ? 'scroll' : 'object' });
     }
 
-
-    let firstEvent = true;
-    EllipsisDirective.elementResizeDetector.listenTo(this.elementRef.nativeElement, () => {
-      if (firstEvent) {
+    let eventCount = 0;
+    EllipsisDirective.elementResizeDetector.listenTo(this.elem, () => {
+      if (eventCount < 2) {
         // elementResizeDetector fires the event directly after re-attaching the listener
         // -> discard that first event:
-        firstEvent = false;
+        eventCount++;
+        console.log('Skipping');
         return;
       }
+      console.log('Firing');
       this.applyEllipsis();
     });
   }
@@ -371,15 +355,10 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
    * Get the original text's truncated version. If the text really needed to
    * be truncated, this.ellipsisCharacters will be appended.
    * @param max the maximum length the text may have
-   * @return string       the truncated string
    */
-  private getTruncatedContents(max: number): HTMLElement {
-    const currentContent = <HTMLElement> this.originalContent.cloneNode(true);
-    if (!this.originalContent || this.originalContent.textContent.length <= max) {
-      return currentContent;
-    }
-
-    const nodes = <(HTMLElement | CharacterData)[]>this.flattenTextAndElementNodes(currentContent)
+  private truncateContents(max: number) {
+    this.updateView();
+    const nodes = <(HTMLElement | CharacterData)[]>this.flattenTextAndElementNodes(this.elem)
       .filter(node => [Node.TEXT_NODE, Node.ELEMENT_NODE].includes(node.nodeType));
 
     let foundIndex = -1;
@@ -398,18 +377,17 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
       }
     }
 
-    const foundNode = <CharacterData> nodes[foundIndex];
+    const foundNode = <CharacterData>nodes[foundIndex];
     foundNode.data = this.ellipsisSubstrFn(foundNode.data, 0, max - offset + foundNode.data.length);
     for (let i = foundIndex + 1; i < nodes.length; i++) {
       const node = nodes[i];
-      if (node.textContent !== '' && node.parentElement !== currentContent && node.parentElement.childNodes.length === 1) {
+      if (node.textContent !== '' && node.parentElement !== this.elem && node.parentElement.childNodes.length === 1) {
         node.parentElement.remove();
       } else {
         node.remove();
       }
     }
 
-    return currentContent;
 
     // const truncatedText = this.ellipsisSubstrFn(this.originalContent, 0, max);
     // if (this.ellipsisWordBoundaries === '[]' || this.originalContent.charAt(max).match(this.ellipsisWordBoundaries)) {
@@ -427,21 +405,17 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
    * Set the truncated text to be displayed in the inner div
    * @param max the maximum length the text may have
    * @param addMoreListener=false listen for click on the ellipsisCharacters anchor tag if the text has been truncated
-   * @returns length of remaining text (excluding the ellipsisCharacters, if they were added)
    */
-  private truncateText(max: number, addMoreListener = false): number {
-    let truncatedContents = this.getTruncatedContents(max);
-    const truncatedLength = truncatedContents.textContent.length;
-    const textTruncated = (truncatedLength !== this.originalContent.textContent.length);
+  private truncateText(max: number, addMoreListener = false) {
+    this.truncateContents(max);
+    const textTruncated = (this.elem.textContent.length !== this.initialTextLength);
 
     if (textTruncated && !this.showMoreLink) {
-      truncatedContents.appendChild(this.renderer.createText(this.ellipsisCharacters));
+      this.elem.appendChild(this.renderer.createText(this.ellipsisCharacters));
     }
 
-    this.renderer.setProperty(this.innerElem, 'innerHTML', truncatedContents.innerHTML);
-
     if (textTruncated && this.showMoreLink) {
-      this.renderer.appendChild(this.innerElem, this.moreAnchor);
+      this.renderer.appendChild(this.elem, this.moreAnchor);
     }
 
     // Remove any existing more click listener:
@@ -453,15 +427,13 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
     // If the text has been truncated, add a more click listener:
     if (addMoreListener && textTruncated) {
       this.destroyMoreClickListener = this.renderer.listen(this.moreAnchor, 'click', (e: MouseEvent) => {
-        if (!e.target || (<HTMLElement> e.target).className !== 'ngx-ellipsis-more') {
+        if (!e.target || (<HTMLElement>e.target).className !== 'ngx-ellipsis-more') {
           return;
         }
         e.preventDefault();
         this.moreClickEmitter.emit(e);
       });
     }
-
-    return truncatedLength;
   }
 
   /**
@@ -472,14 +444,14 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
     this.removeResizeListener();
 
     // Find the best length by trial and error:
-    const maxLength = EllipsisDirective.numericBinarySearch(this.originalContent.textContent.length, curLength => {
+    this.updateView();
+    const maxLength = EllipsisDirective.numericBinarySearch(this.initialTextLength, curLength => {
       this.truncateText(curLength);
       return !this.isOverflowing;
     });
 
     // Apply the best length:
-    const finalLength = this.truncateText(maxLength, this.showMoreLink);
-    console.log(this.innerElem.innerHTML, finalLength);
+    this.truncateText(maxLength, this.showMoreLink);
 
     // Re-attach the resize listener:
     this.addResizeListener();
@@ -487,7 +459,7 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
     // Emit change event:
     if (this.changeEmitter.observers.length > 0) {
       this.changeEmitter.emit(
-        (this.originalContent.textContent.length === finalLength) ? null : finalLength
+        (this.elem.textContent.length === this.initialTextLength) ? null : this.elem.textContent.length
       );
     }
   }
