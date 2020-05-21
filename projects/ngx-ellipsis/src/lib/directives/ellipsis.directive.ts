@@ -17,7 +17,8 @@ import {
   ViewContainerRef,
   ComponentFactoryResolver,
   ComponentFactory,
-  EmbeddedViewRef
+  EmbeddedViewRef,
+  AfterViewChecked
 } from '@angular/core';
 import elementResizeDetectorMaker from 'element-resize-detector';
 import { isPlatformBrowser } from '@angular/common';
@@ -31,7 +32,7 @@ import { EllipsisContentComponent } from '../components/ellipsis-content.compone
   selector: '[ellipsis]',
   exportAs: 'ellipsis'
 })
-export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
+export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit, AfterViewChecked {
   /**
    * Instance of https://github.com/wnr/element-resize-detector
    */
@@ -110,6 +111,7 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
    * If it hasn't been truncated, null is emitted.
    */
   @Output('ellipsisChange') changeEmitter: EventEmitter<number> = new EventEmitter();
+  templateView: EmbeddedViewRef<any>;
 
   /**
    * Utility method to quickly find the largest number for
@@ -176,7 +178,6 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
   ngAfterViewInit() {
     this.compFactory = this.resolver.resolveComponentFactory(EllipsisContentComponent);
     this.updateView();
-    this.initialTextLength = this.elem.textContent.length;
 
     if (!isPlatformBrowser(this.platformId)) {
       // in angular universal we don't have access to the ugly
@@ -246,11 +247,23 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
     }
   }
 
+  ngAfterViewChecked() {
+    // TODO: Check: https://stackoverflow.com/questions/52750490/how-to-pass-variables-from-ng-template-declared-in-parent-component-to-a-child-c
+    if (this.templateView) {
+      this.templateView.detectChanges();
+      if (this.isOverflowing) {
+        this.applyEllipsis();
+      }
+    }
+  }
+
   private updateView() {
     this.viewContainer.clear();
-    const templateView = this.templateRef.createEmbeddedView({});
-    const componentRef = this.viewContainer.createComponent(this.compFactory, null, this.viewContainer.injector, [templateView.rootNodes])
+    this.templateView = this.templateRef.createEmbeddedView({});
+    this.templateView.detectChanges();
+    const componentRef = this.viewContainer.createComponent(this.compFactory, null, this.viewContainer.injector, [this.templateView.rootNodes])
     this.elem = componentRef.instance.elementRef.nativeElement;
+    this.initialTextLength = this.elem.textContent.length;
   }
 
   /**
@@ -356,7 +369,7 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
    * be truncated, this.ellipsisCharacters will be appended.
    * @param max the maximum length the text may have
    */
-  private truncateContents(max: number) {
+  private truncateContents(max: number): CharacterData {
     this.updateView();
     const nodes = <(HTMLElement | CharacterData)[]>this.flattenTextAndElementNodes(this.elem)
       .filter(node => [Node.TEXT_NODE, Node.ELEMENT_NODE].includes(node.nodeType));
@@ -388,6 +401,7 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
       }
     }
 
+    return (this.elem.textContent.length !== this.initialTextLength) ? foundNode : null;
 
     // const truncatedText = this.ellipsisSubstrFn(this.originalContent, 0, max);
     // if (this.ellipsisWordBoundaries === '[]' || this.originalContent.charAt(max).match(this.ellipsisWordBoundaries)) {
@@ -407,15 +421,14 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
    * @param addMoreListener=false listen for click on the ellipsisCharacters anchor tag if the text has been truncated
    */
   private truncateText(max: number, addMoreListener = false) {
-    this.truncateContents(max);
-    const textTruncated = (this.elem.textContent.length !== this.initialTextLength);
+    const truncatedNode = this.truncateContents(max);
 
-    if (textTruncated && !this.showMoreLink) {
-      this.elem.appendChild(this.renderer.createText(this.ellipsisCharacters));
-    }
-
-    if (textTruncated && this.showMoreLink) {
-      this.renderer.appendChild(this.elem, this.moreAnchor);
+    if (truncatedNode) {
+      if (!this.showMoreLink) {
+        truncatedNode.data += this.ellipsisCharacters;
+      } else {
+        this.renderer.appendChild(this.elem, this.moreAnchor);
+      }
     }
 
     // Remove any existing more click listener:
@@ -425,7 +438,7 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
     }
 
     // If the text has been truncated, add a more click listener:
-    if (addMoreListener && textTruncated) {
+    if (addMoreListener && truncatedNode) {
       this.destroyMoreClickListener = this.renderer.listen(this.moreAnchor, 'click', (e: MouseEvent) => {
         if (!e.target || (<HTMLElement>e.target).className !== 'ngx-ellipsis-more') {
           return;

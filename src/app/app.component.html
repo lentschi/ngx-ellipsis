@@ -1,10 +1,11 @@
 <!-- <div class="sample" ellipsis [ellipsisContent]="longText"></div> -->
 <div class="sample">
-  <span *ellipsis>
+  <ng-template ellipsis>
+    <strong>Nana({{longText | json}})</strong>
     <button (click)="active = !active">Toggle</button>
-    <b>Hui<i>Test<em>Lala</em>Lala</i></b>
-  </span>
+  </ng-template>
 </div>
 
 <br><br>
 Active: {{active}}
+<input [(ngModel)]="longText">
