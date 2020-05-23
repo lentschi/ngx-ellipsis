@@ -56,9 +56,9 @@ export class EllipsisDirective implements OnInit, OnDestroy, AfterViewChecked {
    * the truncated contents.
    * Else '...' will be appended.
    */
-  @Input() ellipsis = true;
+  @Input() ellipsis: boolean;
 
-  @Input() ellipsisIndicator: string | TemplateRef<unknown> = '...';
+  @Input() ellipsisIndicator: string | TemplateRef<unknown>;
 
   /**
    * The ellipsisWordBoundaries html attribute
@@ -156,14 +156,19 @@ export class EllipsisDirective implements OnInit, OnDestroy, AfterViewChecked {
    * Initializes the element for displaying the ellipsis.
    */
   ngOnInit() {
-    this.compFactory = this.resolver.resolveComponentFactory(EllipsisContentComponent);
-    this.updateView();
-
     if (!isPlatformBrowser(this.platformId)) {
       // in angular universal we don't have access to the ugly
       // DOM manipulation properties we sadly need to access here,
       // so wait until we're in the browser:
       return;
+    }
+
+    if (typeof(this.ellipsis) !== 'boolean') {
+      this.ellipsis = true;
+    }
+
+    if (typeof(this.ellipsisIndicator) === 'undefined') {
+      this.ellipsisIndicator = '...';
     }
 
     // perform regex replace on word boundaries:
@@ -177,6 +182,10 @@ export class EllipsisDirective implements OnInit, OnDestroy, AfterViewChecked {
         return str.substr(from, length);
       }
     }
+
+    // initialize view:
+    this.compFactory = this.resolver.resolveComponentFactory(EllipsisContentComponent);
+    this.updateView();
 
     // start listening for resize events:
     this.addResizeListener(true);
