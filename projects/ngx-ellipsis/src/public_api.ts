@@ -3,4 +3,5 @@
  */
 
 export * from './lib/directives/ellipsis.directive';
+export * from './lib/components/ellipsis-content.component';
 export * from './lib/ellipsis.module';

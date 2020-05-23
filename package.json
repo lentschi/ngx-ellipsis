@@ -4,6 +4,7 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
+    "start-prod": "ng serve --prod",
     "build": "ng build",
     "build-lib": "ng build ngx-ellipsis --prod",
     "test": "ng test",

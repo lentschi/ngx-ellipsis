@@ -6,9 +6,9 @@ import { Component } from '@angular/core';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {
-  active = false;
+  active = true;
   title = 'ngx-ellipsis-demo';
-  longText = 'Hallo Test';
+  longText = 'Hello world';
   number = 12.4564564564564564;
 
   showEllipsis = true;
