@@ -16,9 +16,12 @@ import {
   AfterViewChecked,
   OnInit
 } from '@angular/core';
-import elementResizeDetectorMaker from 'element-resize-detector';
+import ResizeObserver from 'resize-observer-polyfill';
 import { isPlatformBrowser } from '@angular/common';
 import { EllipsisContentComponent } from '../components/ellipsis-content.component';
+import { EllipsisResizeDetectionEnum } from '../enums/ellipsis-resize-detection.enum';
+import { Subject } from 'rxjs';
+import { take } from 'rxjs/operators';
 
 /**
  * Directive to truncate the contained text, if it exceeds the element's boundaries
@@ -30,34 +33,57 @@ import { EllipsisContentComponent } from '../components/ellipsis-content.compone
 })
 export class EllipsisDirective implements OnInit, OnDestroy, AfterViewChecked {
   /**
-   * Instance of https://github.com/wnr/element-resize-detector
-   */
-  private static elementResizeDetector: elementResizeDetectorMaker.Erd = null;
-
-
-  /**
    * The referenced element
    */
   private elem: HTMLElement;
 
+  /**
+   * Component factory required for rendering EllipsisContent component
+   */
+  private compFactory: ComponentFactory<EllipsisContentComponent>;
 
   /**
-   * Remove the window listener registered by a previous call to `addWindowResizeListener()`.
+   * ViewRef of the main template (the one to be truncated)
    */
-  private removeWindowResizeListener: () => void;
-
-  private compFactory: ComponentFactory<EllipsisContentComponent>;
-  private initialTextLength: number;
   private templateView: EmbeddedViewRef<unknown>;
 
   /**
+   * ViewRef of the indicator template
+   */
+  private indicatorView: EmbeddedViewRef<unknown>;
+
+  /**
+   * Concatenated template html at the time of the last time the ellipsis has been applied
+   */
+  private previousTemplateHtml: string;
+
+  /**
+   * Text length before truncating
+   */
+  private initialTextLength: number;
+
+  /**
+   * Subject triggered when resize listeners should be removed
+   */
+  private removeResizeListeners$ = new Subject<void>();
+
+  private previousDimensions: {
+    width: number,
+    height: number
+  };
+
+  /**
    * The ellipsis html attribute
-   * If anything is passed, this will be used as a string to append to
-   * the truncated contents.
-   * Else '...' will be appended.
+   * Passing true (default) will perform the directive's task,
+   * otherwise the template will be rendered without truncating its contents.
    */
   @Input() ellipsis: boolean;
 
+  /**
+   * The ellipsisIndicator html attribute
+   * Passing a string (default: '...') will append it when the passed template has been truncated
+   * Passing a template will append that template instead
+   */
   @Input() ellipsisIndicator: string | TemplateRef<unknown>;
 
   /**
@@ -77,13 +103,9 @@ export class EllipsisDirective implements OnInit, OnDestroy, AfterViewChecked {
 
   /**
    * The ellipsisResizeDetection html attribute
-   * Algorithm to use to detect element/window resize - any of the following:
-   * 'element-resize-detector': (default) Use https://github.com/wnr/element-resize-detector with its 'scroll' strategy
-   * 'element-resize-detector-object': Use https://github.com/wnr/element-resize-detector with its 'object' strategy (deprecated)
-   * 'window': Only check if the whole window has been resized/changed orientation by using angular's built-in HostListener
+   * Algorithm to use to detect element/window resize - any value of `EllipsisResizeDetectionEnum`
    */
-  @Input() ellipsisResizeDetection:
-    '' | 'manual' | 'element-resize-detector' | 'element-resize-detector-object' | 'window';
+  @Input() ellipsisResizeDetection: EllipsisResizeDetectionEnum;
 
 
   /**
@@ -91,16 +113,14 @@ export class EllipsisDirective implements OnInit, OnDestroy, AfterViewChecked {
    * This emits after which index the text has been truncated.
    * If it hasn't been truncated, null is emitted.
    */
-  @Output() ellipsisChange: EventEmitter<number> = new EventEmitter();
-  private indicatorView: EmbeddedViewRef<unknown>;
-  private previousTemplateHtml: string;
+  @Output() readonly ellipsisChange: EventEmitter<number> = new EventEmitter();
 
   /**
    * Utility method to quickly find the largest number for
    * which `callback(number)` still returns true.
    * @param  max      Highest possible number
    * @param  callback Should return true as long as the passed number is valid
-   * @return          Largest possible number
+   * @returns         Largest possible number
    */
   private static numericBinarySearch(max: number, callback: (n: number) => boolean): number {
     let low = 0;
@@ -143,16 +163,16 @@ export class EllipsisDirective implements OnInit, OnDestroy, AfterViewChecked {
    * The directive's constructor
    */
   public constructor(
-    private templateRef: TemplateRef<unknown>,
-    private viewContainer: ViewContainerRef,
-    private resolver: ComponentFactoryResolver,
-    private renderer: Renderer2,
-    private ngZone: NgZone,
+    private readonly templateRef: TemplateRef<unknown>,
+    private readonly viewContainer: ViewContainerRef,
+    private readonly resolver: ComponentFactoryResolver,
+    private readonly renderer: Renderer2,
+    private readonly ngZone: NgZone,
     @Inject(PLATFORM_ID) private platformId: Object
   ) { }
 
   /**
-   * Angular's init view life cycle hook.
+   * Angular's onInit life cycle hook.
    * Initializes the element for displaying the ellipsis.
    */
   ngOnInit() {
@@ -171,6 +191,10 @@ export class EllipsisDirective implements OnInit, OnDestroy, AfterViewChecked {
       this.ellipsisIndicator = '...';
     }
 
+    if (typeof (this.ellipsisResizeDetection) === 'undefined') {
+      this.ellipsisResizeDetection = EllipsisResizeDetectionEnum.ResizeObserver;
+    }
+
     // perform regex replace on word boundaries:
     if (!this.ellipsisWordBoundaries) {
       this.ellipsisWordBoundaries = '';
@@ -185,10 +209,13 @@ export class EllipsisDirective implements OnInit, OnDestroy, AfterViewChecked {
 
     // initialize view:
     this.compFactory = this.resolver.resolveComponentFactory(EllipsisContentComponent);
-    this.updateView();
+    this.restoreView();
+    this.previousDimensions = {
+      width: this.elem.clientWidth,
+      height: this.elem.clientHeight
+    };
 
-    // start listening for resize events:
-    this.addResizeListener(true);
+    this.applyEllipsis();
   }
 
 
@@ -197,28 +224,39 @@ export class EllipsisDirective implements OnInit, OnDestroy, AfterViewChecked {
    * Remove event listeners
    */
   ngOnDestroy() {
-    // In angular universal we don't have any listeners hooked up (all requiring ugly DOM manipulation methods),
-    // so we only need to remove them, if we're inside the browser:
-    if (isPlatformBrowser(this.platformId)) {
-      this.removeAllListeners();
-    }
+    this.removeResizeListeners$.next();
+    this.removeResizeListeners$.complete();
   }
 
+  /**
+   * Angular's afterViewChecked life cycle hook.
+   * Reapply ellipsis, if any of the templates have changed
+   */
   ngAfterViewChecked() {
     if (this.ellipsisResizeDetection !== 'manual') {
       if (this.templatesHaveChanged) {
-        console.log('applying after view check');
         this.applyEllipsis();
       }
     }
   }
 
+  /**
+   * Convert a list of Nodes to html
+   * @param nodes Nodes to convert
+   * @returns html code
+   */
   private nodesToHtml(nodes: Node[]): string {
     const div = <HTMLElement> this.renderer.createElement('div');
     div.append(...nodes.map(node => node.cloneNode(true)));
     return div.innerHTML;
   }
 
+  /**
+   * Convert the passed templates to html
+   * @param templateView the main template view ref
+   * @param indicatorView the indicator template view ref
+   * @returns concatenated template html
+   */
   private templatesToHtml(templateView: EmbeddedViewRef<unknown>, indicatorView?: EmbeddedViewRef<unknown>): string {
     let html = this.nodesToHtml(templateView.rootNodes);
     if (indicatorView) {
@@ -230,6 +268,10 @@ export class EllipsisDirective implements OnInit, OnDestroy, AfterViewChecked {
     return html;
   }
 
+  /**
+   * Whether any of the passed templates have changed since the last time
+   * the ellipsis has been applied
+   */
   private get templatesHaveChanged(): boolean {
     if (!this.templateView || !this.previousTemplateHtml) {
       return false;
@@ -248,7 +290,10 @@ export class EllipsisDirective implements OnInit, OnDestroy, AfterViewChecked {
     return this.previousTemplateHtml !== templateHtml;
   }
 
-  private updateView() {
+  /**
+   * Restore the view from the templates (non-truncated)
+   */
+  private restoreView() {
     this.viewContainer.clear();
     this.templateView = this.templateRef.createEmbeddedView({});
     this.templateView.detectChanges();
@@ -264,49 +309,31 @@ export class EllipsisDirective implements OnInit, OnDestroy, AfterViewChecked {
     }
   }
 
-  /**
-   * remove all resize listeners
-   */
-  private removeAllListeners() {
-    this.removeResizeListener();
-  }
-
 
   /**
    * Set up an event listener to call applyEllipsis() whenever a resize has been registered.
-   * The type of the listener (window/element) depends on the resizeDetectionStrategy.
-   * @param triggerNow=false if true, the ellipsis is applied immediately
+   * The type of the listener (window/element) depends on the `ellipsisResizeDetection`.
    */
-  private addResizeListener(triggerNow = false) {
-    if (typeof (this.ellipsisResizeDetection) === 'undefined') {
-      this.ellipsisResizeDetection = '';
-    }
-
+  private addResizeListener() {
     switch (this.ellipsisResizeDetection) {
-      case 'manual':
+      case EllipsisResizeDetectionEnum.Manual:
         // Users will trigger applyEllipsis via the public API
         break;
-      case 'window':
+      case EllipsisResizeDetectionEnum.Window:
         this.addWindowResizeListener();
-        break;
-      case 'element-resize-detector-object':
-        this.addElementResizeListener(false);
         break;
       default:
         if (typeof (console) !== 'undefined') {
-          console.warn(
-            `No such ellipsisResizeDetection strategy: '${this.ellipsisResizeDetection}'. Using 'element-resize-detector' instead`
-          );
+          console.warn(`
+            No such ellipsisResizeDetection strategy: '${this.ellipsisResizeDetection}'.
+            Using '${EllipsisResizeDetectionEnum.ResizeObserver}' instead.
+          `);
         }
+        this.ellipsisResizeDetection = EllipsisResizeDetectionEnum.ResizeObserver;
       // eslint-disable-next-line no-fallthrough
-      case 'element-resize-detector':
-      case '':
-        this.addElementResizeListener();
+      case EllipsisResizeDetectionEnum.ResizeObserver:
+        this.addResizeObserver();
         break;
-    }
-
-    if (triggerNow && this.ellipsisResizeDetection !== 'manual') {
-      this.applyEllipsis();
     }
   }
 
@@ -314,47 +341,33 @@ export class EllipsisDirective implements OnInit, OnDestroy, AfterViewChecked {
    * Set up an event listener to call applyEllipsis() whenever the window gets resized.
    */
   private addWindowResizeListener() {
-    this.removeWindowResizeListener = this.renderer.listen('window', 'resize', () => {
+    const removeWindowResizeListener = this.renderer.listen('window', 'resize', () => {
       this.ngZone.run(() => {
         this.applyEllipsis();
       });
     });
+
+    this.removeResizeListeners$.pipe(take(1)).subscribe(() => removeWindowResizeListener());
   }
 
   /**
-   * Set up an event listener to call applyEllipsis() whenever the element
-   * has been resized.
-   * @param scrollStrategy=true Use the default elementResizeDetector's - strategy - s. https://github.com/wnr/element-resize-detector
+   * Set up an event listener to call applyEllipsis() whenever ResizeObserver is triggered for the element.
    */
-  private addElementResizeListener(scrollStrategy = true) {
-    if (!EllipsisDirective.elementResizeDetector) {
-      EllipsisDirective.elementResizeDetector = elementResizeDetectorMaker({ strategy: scrollStrategy ? 'scroll' : 'object' });
-    }
+  private addResizeObserver() {
+    const resizeObserver = new ResizeObserver(() => {
+      if (this.previousDimensions.width !== this.elem.clientWidth || this.previousDimensions.height !== this.elem.clientHeight) {
+        this.ngZone.run(() => {
+          this.applyEllipsis();
+        });
 
-    let eventCount = 0;
-    EllipsisDirective.elementResizeDetector.listenTo(this.elem, () => {
-      if (eventCount < 2) {
-        // elementResizeDetector fires the event directly after re-attaching the listener
-        // -> discard that first event:
-        eventCount++;
-        return;
+        this.previousDimensions.width = this.elem.clientWidth;
+        this.previousDimensions.height = this.elem.clientHeight;
       }
-      this.applyEllipsis();
     });
+    resizeObserver.observe(this.elem);
+    this.removeResizeListeners$.pipe(take(1)).subscribe(() => resizeObserver.disconnect());
   }
 
-  /**
-   * Stop listening for any resize event.
-   */
-  private removeResizeListener() {
-    if (this.ellipsisResizeDetection !== 'window') {
-      if (EllipsisDirective.elementResizeDetector && this.elem) {
-        EllipsisDirective.elementResizeDetector.removeAllListeners(this.elem);
-      }
-    } else {
-      this.removeWindowResizeListener();
-    }
-  }
 
   /**
    * Get the original text's truncated version. If the text really needed to
@@ -363,7 +376,7 @@ export class EllipsisDirective implements OnInit, OnDestroy, AfterViewChecked {
    * @returns the text node that has been truncated or null if truncating wasn't required
    */
   private truncateContents(max: number): CharacterData {
-    this.updateView();
+    this.restoreView();
     const nodes = <(HTMLElement | CharacterData)[]>this.flattenTextAndElementNodes(this.elem)
       .filter(node => [Node.TEXT_NODE, Node.ELEMENT_NODE].includes(node.nodeType));
 
@@ -436,14 +449,14 @@ export class EllipsisDirective implements OnInit, OnDestroy, AfterViewChecked {
 
 
   /**
-   * Display ellipsis in the inner div if the text would exceed the boundaries
+   * Display ellipsis in the EllipsisContentComponent if the text would exceed the boundaries
    */
   public applyEllipsis() {
     // Remove the resize listener as changing the contained text would trigger events:
-    this.removeResizeListener();
+    this.removeResizeListeners$.next();
 
     // update from templates:
-    this.updateView();
+    this.restoreView();
 
     // remember template state:
     this.previousTemplateHtml = this.templatesToHtml(this.templateView, this.indicatorView);
