@@ -18,8 +18,10 @@ const ELLIPSIS_TEST_CSS = `
 @Component({
   selector: 'ellipsis-test-cmp',
   template: `
-    <div style="width: 100px; height:50px;" id="ellipsisTest" ellipsis>
-      Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt
+    <div style="width: 100px; height:50px;" id="ellipsisTest">
+      <ng-template ellipsis>
+        Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt
+      </ng-template>
     </div>
   `,
   styles: [ ELLIPSIS_TEST_CSS ]
@@ -30,13 +32,12 @@ class StaticTestComponent {
 @Component({
   selector: 'ellipsis-test-cmp',
   template: `
-    <div
-        id="ellipsisTestDynamic"
-        ellipsis
-        [ngStyle]="styles"
+    <div [ngStyle]="styles"
+        id="ellipsisTestDynamic">
+      <ng-template ellipsis
         [ellipsisWordBoundaries]="wordBoundaries"
-        [ellipsisContent]="htmlContent"
-        (ellipsisChange)="onEllipsisChange($event)"></div>
+        (ellipsisChange)="onEllipsisChange($event)">{{htmlContent}}</ng-template>
+    </div>
   `,
   styles: [ ELLIPSIS_TEST_CSS ]
 })
@@ -56,9 +57,9 @@ class DynamicTestComponent {
   template: `
     <div
         style="width: 100px; height:100px;"
-        id="ellipsisNumberTestDynamic"
-        ellipsis
-        [ellipsisContent]="htmlContent"></div>
+        id="ellipsisNumberTestDynamic">
+      <ng-template ellipsis>{{htmlContent}}</ng-template>
+    </div>
   `,
   styles: [ ELLIPSIS_TEST_CSS ]
 })
@@ -77,7 +78,7 @@ describe('EllipsisDirective', () => {
         EllipsisDirective
       ],
       providers: [
-        { provide: ComponentFixtureAutoDetect, useValue: true }
+        // { provide: ComponentFixtureAutoDetect, useValue: true }
       ]
     });
   }));
@@ -87,8 +88,8 @@ describe('EllipsisDirective', () => {
     fixture.detectChanges();
     await fixture.whenStable();
     const compiled = fixture.debugElement.nativeElement;
-    const ellipsisDiv = compiled.querySelector('#ellipsisTest > div');
-    expect(ellipsisDiv.innerHTML).toBe('Lorem ipsum dolor sit ame...');
+    const ellipsisDiv = compiled.querySelector('#ellipsisTest > ellipsis-content');
+    expect(ellipsisDiv.innerHTML.trim()).toBe('Lorem ipsum dolor sit ame...');
   }));
 
   it('should emit details about the ellipsis', async(async () => {
@@ -101,7 +102,7 @@ describe('EllipsisDirective', () => {
     componentInstance.htmlContent = 'Test';
     fixture.detectChanges();
     await fixture.whenStable();
-    expect(changeSpy.calls.count()).toBe(1);
+    expect(changeSpy.calls.count()).toBe(2);
     expect(changeSpy.calls.mostRecent().args.length).toBe(1);
     expect(changeSpy.calls.mostRecent().args[0]).toEqual(null);
 
@@ -109,9 +110,9 @@ describe('EllipsisDirective', () => {
     componentInstance.htmlContent = newTestText;
     fixture.detectChanges();
     await fixture.whenStable();
-    expect(changeSpy.calls.count()).toBe(2);
+    expect(changeSpy.calls.count()).toBe(3);
     expect(changeSpy.calls.mostRecent().args.length).toBe(1);
-    expect(changeSpy.calls.mostRecent().args[0]).toEqual(60);
+    expect(changeSpy.calls.mostRecent().args[0]).toEqual(63);
   }));
 
   it('should create a ellipsis escaping html content', async(async () => {
@@ -121,18 +122,20 @@ describe('EllipsisDirective', () => {
     fixture.detectChanges();
     await fixture.whenStable();
     const compiled = fixture.debugElement.nativeElement;
-    const ellipsisDiv = compiled.querySelector('#ellipsisTestDynamic > div');
+    let ellipsisDiv = compiled.querySelector('#ellipsisTestDynamic > ellipsis-content');
     expect(ellipsisDiv.innerText).toBe('<b>Lorem ipsum</b> dolor sit amet, consetetur sadipscing...');
 
     componentInstance.htmlContent = 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt';
     fixture.detectChanges();
     await fixture.whenStable();
+    ellipsisDiv = compiled.querySelector('#ellipsisTestDynamic > ellipsis-content');
     expect(ellipsisDiv.innerText).toBe('Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed...');
 
     componentInstance.htmlContent = `Lorem ipsum dolor <b>sit amet</b>,
       consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt`;
     fixture.detectChanges();
     await fixture.whenStable();
+    ellipsisDiv = compiled.querySelector('#ellipsisTestDynamic > ellipsis-content');
     expect(ellipsisDiv.innerText).toBe('Lorem ipsum dolor <b>sit amet</b>, consetetur sadipscing...');
 
     // Check that special characters aren't falsely separated
@@ -143,6 +146,7 @@ describe('EllipsisDirective', () => {
     componentInstance.styles.height = '30px';
     fixture.detectChanges();
     await fixture.whenStable();
+    ellipsisDiv = compiled.querySelector('#ellipsisTestDynamic > ellipsis-content');
     expect(ellipsisDiv.innerText).toBe('C\'est l\'homme&nbsp;qui a vu <b>l\'homme</b> qui a vu l\'...');
   }));
 
@@ -153,12 +157,13 @@ describe('EllipsisDirective', () => {
     fixture.detectChanges();
     await fixture.whenStable();
     const compiled = fixture.debugElement.nativeElement;
-    const ellipsisDiv = compiled.querySelector('#ellipsisTestDynamic > div');
+    let ellipsisDiv = compiled.querySelector('#ellipsisTestDynamic > ellipsis-content');
     expect(ellipsisDiv.innerText).toBe('<b>Lorem ipsum</b> dolor sit amet, consetetur sadipscing...');
 
     componentInstance.htmlContent = null;
     fixture.detectChanges();
     await fixture.whenStable();
+    ellipsisDiv = compiled.querySelector('#ellipsisTestDynamic > ellipsis-content');
     expect(ellipsisDiv.innerText).toBe('');
   }));
 
@@ -170,7 +175,7 @@ describe('EllipsisDirective', () => {
     await numberFixture.whenStable();
 
     const compiled = numberFixture.debugElement.nativeElement;
-    const ellipsisDiv = compiled.querySelector('#ellipsisNumberTestDynamic > div');
+    let ellipsisDiv = compiled.querySelector('#ellipsisNumberTestDynamic > ellipsis-content');
     numberFixture.detectChanges();
     await numberFixture.whenStable();
 
@@ -181,6 +186,7 @@ describe('EllipsisDirective', () => {
     numberComponentInstance.htmlContent = Math.PI;
     numberFixture.detectChanges();
     await numberFixture.whenStable();
+    ellipsisDiv = compiled.querySelector('#ellipsisNumberTestDynamic > ellipsis-content');
     expect(ellipsisDiv.innerText).toBe('3.141592653...');
   }));
 });

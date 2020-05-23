@@ -355,14 +355,16 @@ export class EllipsisDirective implements OnInit, OnDestroy, AfterViewChecked {
    */
   private addResizeObserver() {
     const resizeObserver = new ResizeObserver(() => {
-      if (this.previousDimensions.width !== this.elem.clientWidth || this.previousDimensions.height !== this.elem.clientHeight) {
-        this.ngZone.run(() => {
-          this.applyEllipsis();
-        });
+      window.requestAnimationFrame(() => {
+        if (this.previousDimensions.width !== this.elem.clientWidth || this.previousDimensions.height !== this.elem.clientHeight) {
+          this.ngZone.run(() => {
+            this.applyEllipsis();
+          });
 
-        this.previousDimensions.width = this.elem.clientWidth;
-        this.previousDimensions.height = this.elem.clientHeight;
-      }
+          this.previousDimensions.width = this.elem.clientWidth;
+          this.previousDimensions.height = this.elem.clientHeight;
+        }
+      });
     });
     resizeObserver.observe(this.elem);
     this.removeResizeListeners$.pipe(take(1)).subscribe(() => resizeObserver.disconnect());
