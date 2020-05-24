@@ -295,7 +295,7 @@ export class EllipsisDirective implements OnInit, OnDestroy, AfterViewChecked {
       this.compFactory, null, this.viewContainer.injector, [this.templateView.rootNodes]
     );
     this.elem = componentRef.instance.elementRef.nativeElement;
-    this.initialTextLength = this.elem.textContent.trim().length;
+    this.initialTextLength = this.currentLength;
 
     this.indicatorView = (typeof this.ellipsisIndicator !== 'string') ? this.ellipsisIndicator.createEmbeddedView({}) : null;
     if (this.indicatorView) {
@@ -371,37 +371,40 @@ export class EllipsisDirective implements OnInit, OnDestroy, AfterViewChecked {
    * @param max the maximum length the text may have
    * @returns the text node that has been truncated or null if truncating wasn't required
    */
-  private truncateContents(max: number): CharacterData {
+  private truncateContents(max: number): Node {
     this.restoreView();
     const nodes = <(HTMLElement | CharacterData)[]>this.flattenTextAndElementNodes(this.elem)
       .filter(node => [Node.TEXT_NODE, Node.ELEMENT_NODE].includes(node.nodeType));
 
     let foundIndex = -1;
-    let foundNode: CharacterData;
+    let foundNode: Node;
     let offset = this.initialTextLength;
     for (let i = nodes.length - 1; i >= 0; i--) {
       const node = nodes[i];
 
-      if (!(node instanceof CharacterData)) {
-        continue;
+      if (node instanceof CharacterData) {
+        offset -= node.data.length;
+      } else {
+        offset--;
       }
 
-      offset -= node.data.length;
-      if (offset < max || (offset === 0 && max === 0)) {
-        if (this.ellipsisWordBoundaries === '[]' && !this.ellipsisMayTruncateAtFn) {
-          node.data = node.data.substr(0, max - offset);
-        } else if (max - offset !== node.data.length) {
-          let j = max - offset - 1;
-          while (
-            j > 0 && (
-              (this.ellipsisWordBoundaries !== '[]' && !node.data.charAt(j).match(this.ellipsisWordBoundaries)) ||
-              (this.ellipsisMayTruncateAtFn && !this.ellipsisMayTruncateAtFn(node, j))
-            )
-          ) {
-            j--;
-          }
+      if (offset <= max) {
+        if (node instanceof CharacterData) {
+          if (this.ellipsisWordBoundaries === '[]' && !this.ellipsisMayTruncateAtFn) {
+            node.data = node.data.substr(0, max - offset);
+          } else if (max - offset !== node.data.length) {
+            let j = max - offset - 1;
+            while (
+              j > 0 && (
+                (this.ellipsisWordBoundaries !== '[]' && !node.data.charAt(j).match(this.ellipsisWordBoundaries)) ||
+                (this.ellipsisMayTruncateAtFn && !this.ellipsisMayTruncateAtFn(node, j))
+              )
+            ) {
+              j--;
+            }
 
-          node.data = node.data.substr(0, j);
+            node.data = node.data.substr(0, j);
+          }
         }
         foundIndex = i;
         foundNode = node;
@@ -418,7 +421,14 @@ export class EllipsisDirective implements OnInit, OnDestroy, AfterViewChecked {
       }
     }
 
-    return (this.elem.textContent.trim().length !== this.initialTextLength) ? foundNode : null;
+    return (this.currentLength !== this.initialTextLength) ? foundNode : null;
+  }
+
+  private get currentLength(): number {
+    return this.flattenTextAndElementNodes(this.elem)
+      .filter(node => [Node.TEXT_NODE, Node.ELEMENT_NODE].includes(node.nodeType))
+      .map(node => (node instanceof CharacterData) ? node.data.length : 1)
+      .reduce((sum, length) => sum + length);
   }
 
   /**
@@ -431,17 +441,12 @@ export class EllipsisDirective implements OnInit, OnDestroy, AfterViewChecked {
 
     if (truncatedNode) {
       if (!this.indicatorView) {
-        truncatedNode.data += <string> this.ellipsisIndicator;
-      } else {
-        // Remove last truncated node, if empty:
-        if (
-          truncatedNode.textContent === ''
-          && truncatedNode.parentElement !== this.elem
-          && truncatedNode.parentElement.childNodes.length === 1
-        ) {
-          truncatedNode.parentElement.remove();
+        if (truncatedNode instanceof CharacterData) {
+          truncatedNode.data += <string> this.ellipsisIndicator;
+        } else {
+          this.renderer.appendChild(this.elem, this.renderer.createText(<string> this.ellipsisIndicator));
         }
-
+      } else {
         for (const node of this.indicatorView.rootNodes) {
           this.renderer.appendChild(this.elem, node);
         }
@@ -482,8 +487,9 @@ export class EllipsisDirective implements OnInit, OnDestroy, AfterViewChecked {
 
     // Emit change event:
     if (this.ellipsisChange.observers.length > 0) {
+      const currentLength = this.currentLength;
       this.ellipsisChange.emit(
-        (this.elem.textContent.trim().length === this.initialTextLength) ? null : this.elem.textContent.trim().length
+        (currentLength === this.initialTextLength) ? null : currentLength
       );
     }
   }
