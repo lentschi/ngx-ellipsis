@@ -1,32 +1,13 @@
 <h1>Welcome to ngx-ellipsis-demo!</h1>
 <h2>With fixed widths (drag bottom right corners to resize):</h2>
 <div class="samples fixed">
-  <div class="sample"><ng-template ellipsis><em>Lorem ipsum</em> dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.</ng-template></div>
-  <div class="sample"><ng-template ellipsis><span [innerHTML]="longText"></span></ng-template></div>
-  <div class="sample small"><ng-template ellipsis>{{number}}</ng-template></div>
-</div>
-
-<h2>With percentage widths (resize window horizontally or boxes vertically to see changes in ellipsis):</h2>
-<div class="samples flex">
-  <div class="sample"><ng-template ellipsis>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.</ng-template></div>
-  <div class="sample"><ng-template ellipsis><span [innerHTML]="longText"></span></ng-template></div>
-  <div class="sample small"><ng-template ellipsis>{{number}}</ng-template></div>
-</div>
-
-<h2>With a "more" click listener:</h2>
-<div *ngIf="showEllipsis; else noEllipsis" class="samples fixed">
+  <div class="sample"><ng-template ellipsis [ellipsisMayTruncateAtFn]="mayTruncateAtFn">
+    🧛‍♀️ 🧛‍♀️ Hello world 🧛‍♀️ 🧛‍♀️Test<button>Hello</button>
+  </ng-template></div>
   <div class="sample">
-    <ng-template ellipsis [ellipsisIndicator]="moreAnchor">{{longText}}</ng-template>
-    <ng-template #moreAnchor>
-      <button (click)="showEllipsis = false">Show more!</button>
+    <ng-template ellipsis>
+      <span [innerHTML]="'🧛‍♀️ 🧛‍♀️ Hello<br />world 🧛‍♀️🧛‍♀️' | utf8EmojisToImages"></span>
     </ng-template>
   </div>
 </div>
-
-<ng-template #noEllipsis>
-  <div class="longText">
-    {{longText}}
-    <button (click)="showEllipsis = true">Show less</button>
-  </div>
-</ng-template>
 

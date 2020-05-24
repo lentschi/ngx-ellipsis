@@ -5,6 +5,7 @@ import { AppComponent } from './app.component';
 import { EllipsisModule } from '../../projects/ngx-ellipsis/src/public_api';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Utf8EmojisToImagesModule } from 'ng-utf8-emojis-to-images';
 
 @NgModule({
   declarations: [
@@ -14,7 +15,8 @@ import { FormsModule } from '@angular/forms';
     BrowserModule,
     EllipsisModule,
     CommonModule,
-    FormsModule
+    FormsModule,
+    Utf8EmojisToImagesModule
   ],
   providers: [],
   bootstrap: [AppComponent]

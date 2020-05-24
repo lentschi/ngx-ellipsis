@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import runes from 'runes';
 
 @Component({
   selector: 'app-root',
@@ -15,4 +16,19 @@ export class AppComponent {
   number = 12.4564564564564564;
 
   showEllipsis = true;
+
+  mayTruncateAtFn = (node: CharacterData, position: number): boolean => {
+    const runesArr = runes(node.data);
+    let curPos = 0;
+    for (const rune of runesArr) {
+      curPos += rune.length;
+      if (position === curPos) {
+        return true;
+      } else if (curPos > position) {
+        return false;
+      }
+    }
+
+    return true;
+  }
 }
