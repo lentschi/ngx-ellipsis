@@ -99,7 +99,7 @@ export class EllipsisDirective implements OnInit, OnDestroy, AfterViewChecked {
    * (This may for example be used to avoid splitting surrogate pairs- used by some emojis -
    * by providing a lib such as runes.)
    */
-  @Input() ellipsisSubstrFn: (str: string, from: number, length?: number) => string;
+  @Input() ellipsisMayTruncateAtFn: (node: CharacterData, position: number) => boolean;
 
   /**
    * The ellipsisResizeDetection html attribute
@@ -199,13 +199,7 @@ export class EllipsisDirective implements OnInit, OnDestroy, AfterViewChecked {
     if (!this.ellipsisWordBoundaries) {
       this.ellipsisWordBoundaries = '';
     }
-    this.ellipsisWordBoundaries = '[' + this.ellipsisWordBoundaries.replace(/\\n/, '\n').replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&') + ']';
-
-    if (!this.ellipsisSubstrFn) {
-      this.ellipsisSubstrFn = (str: string, from: number, length?: number) => {
-        return str.substr(from, length);
-      }
-    }
+    this.ellipsisWordBoundaries = '[' + this.ellipsisWordBoundaries.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&') + ']';
 
     // initialize view:
     this.compFactory = this.resolver.resolveComponentFactory(EllipsisContentComponent);
@@ -394,14 +388,20 @@ export class EllipsisDirective implements OnInit, OnDestroy, AfterViewChecked {
 
       offset -= node.data.length;
       if (offset < max || (offset === 0 && max === 0)) {
-        if (this.ellipsisWordBoundaries === '[]') {
-          node.data = this.ellipsisSubstrFn(node.data, 0, max - offset);
+        if (this.ellipsisWordBoundaries === '[]' && !this.ellipsisMayTruncateAtFn) {
+          node.data = node.data.substr(0, max - offset);
         } else if (max - offset !== node.data.length) {
           let j = max - offset - 1;
-          while (j > 0 && !node.data.charAt(j).match(this.ellipsisWordBoundaries)) {
+          while (
+            j > 0 && (
+              (this.ellipsisWordBoundaries !== '[]' && !node.data.charAt(j).match(this.ellipsisWordBoundaries)) ||
+              (this.ellipsisMayTruncateAtFn && !this.ellipsisMayTruncateAtFn(node, j))
+            )
+          ) {
             j--;
           }
-          node.data = this.ellipsisSubstrFn(node.data, 0, j);
+
+          node.data = node.data.substr(0, j);
         }
         foundIndex = i;
         foundNode = node;
