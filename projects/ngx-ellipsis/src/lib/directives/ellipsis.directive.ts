@@ -95,9 +95,12 @@ export class EllipsisDirective implements OnInit, OnDestroy, AfterViewChecked {
   @Input() ellipsisWordBoundaries: string;
 
   /**
-   * Function to use for string splitting. Defaults to the native `String#substr`.
-   * (This may for example be used to avoid splitting surrogate pairs- used by some emojis -
-   * by providing a lib such as runes.)
+   * The ellipsisMayTruncateAtFn html attribute
+   * Function that lets you specify whether the contents may be truncated at a specific point or not:
+   * `(node: CharacterData, position: number) => boolean`
+   * `node` Text node that is being truncated
+   * `position` String position the text would be truncated at
+   * Should return true, if the text may be truncated here, else false
    */
   @Input() ellipsisMayTruncateAtFn: (node: CharacterData, position: number) => boolean;
 

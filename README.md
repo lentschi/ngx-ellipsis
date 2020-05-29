@@ -1,12 +1,12 @@
-# ngx-ellipsis
+# ngx-html-ellipsis
 
-Plugin for angular (>= 6.0.0) providing a directive to display an ellipsis if the containing text would overflow.
+Library for angular (>= 6.0.0) providing a directive to display an ellipsis if the containing text would overflow.
 
-Supports text only (no html contents)!
+Supports dynamic html contents - if you require text contents only you might want to take a look at [ngx-ellipsis](https://github.com/lentschi/ngx-ellipsis), which offers better performance but escapes any html contents to text.
 
 ## Demo
 
-For a demo either just checkout this project and run `npm install && npm run start` or visit [the StackBlitz demo page](https://stackblitz.com/github/lentschi/ngx-ellipsis?file=src%2Fapp%2Fapp.component.html).
+For a demo either just checkout this project and run `npm install && npm run start` or visit [the StackBlitz demo page](https://stackblitz.com/github/lentschi/ngx-html-ellipsis?file=src%2Fapp%2Fapp.component.html).
 
 ## Installation
 
@@ -15,7 +15,7 @@ For use in an existing angular project run `npm install ngx-ellipsis --save`.
 Then add the installed module to your `app.module.ts`:
 
 ```typescript
-import { EllipsisModule } from 'ngx-ellipsis';
+import { EllipsisModule } from 'ngx-html-ellipsis';
 
 // ...
 
@@ -36,10 +36,9 @@ export class AppModule {}
 Anywhere in your template:
 
 ```html
-<div style="width: 100px; height: 100px;" ellipsis>Your very long text</div>
-
-<!-- Or for dynamic content: -->
-<div style="width: 100px; height: 100px;" ellipsis [ellipsisContent]="yourDynamicContent"></div>
+<div style="width: 130px; height: 18px;">
+  <ng-template [ellipsis]>Your very long <em>rich</em> text</ng-template>
+</div>
 ```
 
 As you can see, you need to define the dimensions of your element yourself. (ngx-ellipsis doesn't automatically add any element styles.) But of course you don't need to use fixed widths/heights like in these examples. Flex layout shold work just fine for example.
@@ -50,12 +49,11 @@ You may add the following attributes to change the directive's behavior:
 
 | attribute | meaning |
 | ---- | ---- |
-| __ellipsis__ | _required_ If you pass an attribute value (e.g. `ellipsis=" More ..."`) you can override the text that will be appended, should it be necessary to truncate the text (_default_: "...")|
-| __ellipsisContent__ | Use this for dynamic content, that will be subject to asynchronous changes (e.g.: `[ellipsisContent]="myVar"`) |
-| __ellipsisWordBoundaries__ | If you pass this attribute, the text won't be truncated at just any character but only at those in the attribute's value. For example `ellipsisWordBoundaries=" \n"` will allow the text to break at spaces and newlines only |
-| __ellipsisSubstrFn__ | `substr` function to use for string splitting. Defaults to the native `String#substr`. (This may for example be used to avoid splitting [surrogate pairs](http://en.wikipedia.org/wiki/UTF-16) - used by some emojis - by providing a lib such as [runes](https://github.com/dotcypress/runes).) |
-| __ellipsisResizeDetection__ | How resize events should be detected - these are the possible values: <ul><li>__element-resize-detector__: _default_ Use [wnr/element-resize-detector](https://github.com/wnr/element-resize-detector) with its `scroll` strategy. (-> Even when you change the element's width using javascript, the ellipsis will auto-adept)</li><li>__element-resize-detector-object__: _deprecated_ Use [wnr/element-resize-detector](https://github.com/wnr/element-resize-detector) with its `object` strategy</li><li>__window__: Only listen if the whole window has been resized/changed orientation (Possibly better performance, but obviously won't trigger on resize caused directly or indirectly by javascript.)</li><li>__manual__: Ellipsis is never applied automatically. Instead the consuming app may use `#ell="ellipsis"` in the template and `this.ell.applyEllipsis()` in the component code.</li></ul> |
-| __ellipsisClickMore__ | Event emitter - If set, the text defined by the `ellipsis`  attribute will be converted into a clickable link. For example `(ellipsisClickMore)="moreClicked()"` will call your component's `moreClicked()` method when the user clicks on the link.|
+| __ellipsis__ | _required_ Passing true (default) will perform the directive's task otherwise the template will be rendered without truncating its contents.|
+| __ellipsisIndicator__ | Passing a string (default: '...') will append it when the passed template has been truncated. Passing a template will append that template instead. |
+| __ellipsisWordBoundaries__ | If you pass this attribute, the text won't be truncated at just any character but only at those in the attribute's value. For example `ellipsisWordBoundaries=" "` will allow the text to break at spaces only |
+| __ellipsisMayTruncateAtFn__ | Function that lets you specify whether the contents may be truncated at a certain point or not.
+| __ellipsisResizeDetection__ | How resize events should be detected - these are the possible values: <ul><li>__resize-observer__: _default_ Use native ResizeObserver (See [Web/API/ResizeObserver](https://developer.mozilla.org/en-US/docs/Web/API/ResizeObserver) and [que-etc/resize-observer-polyfill](https://github.com/que-etc/resize-observer-polyfill))</li><li>__window__: Only listen if the whole window has been resized/changed orientation (Possibly better performance, but obviously won't trigger on resize caused directly or indirectly by javascript.)</li><li>__manual__: Ellipsis is never applied automatically. Instead the consuming app may use `#ell="ellipsis"` in the template and `this.ell.applyEllipsis()` in the component code.</li></ul> |
 | __ellipsisChange__ | Event emitter - Will be emitted whenever the ellipsis has been recalculated (depending on `ellipsisResizeDetection`). If the text had to be truncated the position of the last visible character will be emitted, else `null`.|
 
 ## Build & publish on npm
@@ -75,7 +73,7 @@ Run `npm run test ngx-ellipsis` to execute the unit tests via [Karma](https://ka
 
 ## Thank you...
 
-- ... __Lucas Wiener__ for writing the [element-resize-detector](https://github.com/wnr/element-resize-detector) package which is internally used by this module.
+- ... __Denis Rul__ for writing the [resize-observer-polyfill](https://github.com/que-etc/resize-observer-polyfill) package which is internally used by this module.
 
 ## License
 

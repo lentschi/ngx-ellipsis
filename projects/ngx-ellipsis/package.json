@@ -14,9 +14,6 @@
     "@angular/core": ">=6.0.0 <10.0.0 || >7.0.0-beta <10.0.0"
   },
   "dependencies": {
-    "element-resize-detector": "^1.2.1"
-  },
-  "devDependencies": {
-    "@types/element-resize-detector": "^1.1.0"
+    "resize-observer-polyfill": "*"
   }
 }

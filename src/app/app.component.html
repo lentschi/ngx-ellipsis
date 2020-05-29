@@ -13,10 +13,10 @@
   <div class="sample small"><ng-template ellipsis>{{number}}</ng-template></div>
 </div>
 
-<h2>With a "more" click listener:</h2>
+<h2>With a "more" click button:</h2>
 <div *ngIf="showEllipsis; else noEllipsis" class="samples fixed">
   <div class="sample">
-    <ng-template ellipsis [ellipsisIndicator]="moreAnchor">{{longText}}</ng-template>
+    <span *ellipsis="true; indicator moreAnchor" [innerHTML]="longText"></span>
     <ng-template #moreAnchor>
       <button (click)="showEllipsis = false">Show more!</button>
     </ng-template>
@@ -25,7 +25,7 @@
 
 <ng-template #noEllipsis>
   <div class="longText">
-    {{longText}}
+    <span [innerHTML]="longText"></span>
     <button (click)="showEllipsis = true">Show less</button>
   </div>
 </ng-template>

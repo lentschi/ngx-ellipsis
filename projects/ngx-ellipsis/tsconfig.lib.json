@@ -13,8 +13,9 @@
     "importHelpers": true,
     "types": [],
     "lib": [
+      "es6",
       "dom",
-      "es2015"
+      "es2017"
     ]
   },
   "angularCompilerOptions": {
