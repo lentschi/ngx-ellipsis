@@ -13,7 +13,7 @@ jobs:
           command: "npx eslint --ext .ts,.html --max-warnings 0 ./"
       - run:
           name: run-angular-lib-tests
-          command: "npm run test -- --browsers=ChromeHeadless --watch=false ngx-ellipsis"
+          command: "npm run test -- --browsers=ChromeHeadless --watch=false ngx-nested-ellipsis"
 workflows:
     build-and-test:
       jobs:

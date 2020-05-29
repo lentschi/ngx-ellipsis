@@ -18,7 +18,7 @@ import {
 } from '@angular/core';
 import ResizeObserver from 'resize-observer-polyfill';
 import { isPlatformBrowser } from '@angular/common';
-import { EllipsisContentComponent } from '../components/ellipsis-content.component';
+import { NestedEllipsisContentComponent } from '../components/nested-ellipsis-content.component';
 import { EllipsisResizeDetectionEnum } from '../enums/ellipsis-resize-detection.enum';
 import { Subject } from 'rxjs';
 import { take } from 'rxjs/operators';
@@ -28,10 +28,10 @@ import { take } from 'rxjs/operators';
  * and append characters (configurable, default '...') if so.
  */
 @Directive({
-  selector: '[ellipsis]',
-  exportAs: 'ellipsis'
+  selector: '[nestedEllipsis]',
+  exportAs: 'ngxNestedEllipsis'
 })
-export class EllipsisDirective implements OnInit, OnDestroy, AfterViewChecked {
+export class NestedEllipsisDirective implements OnInit, OnDestroy, AfterViewChecked {
   /**
    * The referenced element
    */
@@ -40,7 +40,7 @@ export class EllipsisDirective implements OnInit, OnDestroy, AfterViewChecked {
   /**
    * Component factory required for rendering EllipsisContent component
    */
-  private compFactory: ComponentFactory<EllipsisContentComponent>;
+  private compFactory: ComponentFactory<NestedEllipsisContentComponent>;
 
   /**
    * ViewRef of the main template (the one to be truncated)
@@ -73,26 +73,26 @@ export class EllipsisDirective implements OnInit, OnDestroy, AfterViewChecked {
   };
 
   /**
-   * The ellipsis html attribute
+   * The ngxNestedEllipsis html attribute
    * Passing true (default) will perform the directive's task,
    * otherwise the template will be rendered without truncating its contents.
    */
-  @Input() ellipsis: boolean;
+  @Input('nestedEllipsis') active: boolean;
 
   /**
    * The ellipsisIndicator html attribute
    * Passing a string (default: '...') will append it when the passed template has been truncated
    * Passing a template will append that template instead
    */
-  @Input() ellipsisIndicator: string | TemplateRef<unknown>;
+  @Input('nestedEllipsisIndicator') indicator: string | TemplateRef<unknown>;
 
   /**
    * The ellipsisWordBoundaries html attribute
-   * If anything is passed, each character will be interpreted
+   * Each character passed to this input will be interpreted
    * as a word boundary at which the text may be truncated.
    * Else the text may be truncated at any character.
    */
-  @Input() ellipsisWordBoundaries: string;
+  @Input('nestedEllipsisWordBoundaries') wordBoundaries: string;
 
   /**
    * The ellipsisMayTruncateAtFn html attribute
@@ -102,13 +102,13 @@ export class EllipsisDirective implements OnInit, OnDestroy, AfterViewChecked {
    * `position` String position the text would be truncated at
    * Should return true, if the text may be truncated here, else false
    */
-  @Input() ellipsisMayTruncateAtFn: (node: CharacterData, position: number) => boolean;
+  @Input('nestedEllipsisMayTruncateAtFn') mayTruncateAtFn: (node: CharacterData, position: number) => boolean;
 
   /**
    * The ellipsisResizeDetection html attribute
    * Algorithm to use to detect element/window resize - any value of `EllipsisResizeDetectionEnum`
    */
-  @Input() ellipsisResizeDetection: EllipsisResizeDetectionEnum;
+  @Input('nestedEllipsisResizeDetection') resizeDetection: EllipsisResizeDetectionEnum;
 
 
   /**
@@ -116,7 +116,7 @@ export class EllipsisDirective implements OnInit, OnDestroy, AfterViewChecked {
    * This emits after which index the text has been truncated.
    * If it hasn't been truncated, null is emitted.
    */
-  @Output() readonly ellipsisChange: EventEmitter<number> = new EventEmitter();
+  @Output('nestedEllipsisChange') readonly change: EventEmitter<number> = new EventEmitter();
 
   /**
    * Utility method to quickly find the largest number for
@@ -186,26 +186,26 @@ export class EllipsisDirective implements OnInit, OnDestroy, AfterViewChecked {
       return;
     }
 
-    if (typeof(this.ellipsis) !== 'boolean') {
-      this.ellipsis = true;
+    if (typeof(this.active) !== 'boolean') {
+      this.active = true;
     }
 
-    if (typeof(this.ellipsisIndicator) === 'undefined') {
-      this.ellipsisIndicator = '...';
+    if (typeof(this.indicator) === 'undefined') {
+      this.indicator = '...';
     }
 
-    if (typeof (this.ellipsisResizeDetection) === 'undefined') {
-      this.ellipsisResizeDetection = EllipsisResizeDetectionEnum.ResizeObserver;
+    if (typeof (this.resizeDetection) === 'undefined') {
+      this.resizeDetection = EllipsisResizeDetectionEnum.ResizeObserver;
     }
 
     // perform regex replace on word boundaries:
-    if (!this.ellipsisWordBoundaries) {
-      this.ellipsisWordBoundaries = '';
+    if (!this.wordBoundaries) {
+      this.wordBoundaries = '';
     }
-    this.ellipsisWordBoundaries = '[' + this.ellipsisWordBoundaries.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&') + ']';
+    this.wordBoundaries = '[' + this.wordBoundaries.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&') + ']';
 
     // initialize view:
-    this.compFactory = this.resolver.resolveComponentFactory(EllipsisContentComponent);
+    this.compFactory = this.resolver.resolveComponentFactory(NestedEllipsisContentComponent);
     this.restoreView();
     this.previousDimensions = {
       width: this.elem.clientWidth,
@@ -230,7 +230,7 @@ export class EllipsisDirective implements OnInit, OnDestroy, AfterViewChecked {
    * Reapply ellipsis, if any of the templates have changed
    */
   ngAfterViewChecked() {
-    if (this.ellipsisResizeDetection !== 'manual') {
+    if (this.resizeDetection !== 'manual') {
       if (this.templatesHaveChanged) {
         this.applyEllipsis();
       }
@@ -259,7 +259,7 @@ export class EllipsisDirective implements OnInit, OnDestroy, AfterViewChecked {
     if (indicatorView) {
       html += this.nodesToHtml(indicatorView.rootNodes);
     } else {
-      html += <string> this.ellipsisIndicator;
+      html += <string> this.indicator;
     }
 
     return html;
@@ -277,7 +277,7 @@ export class EllipsisDirective implements OnInit, OnDestroy, AfterViewChecked {
     const templateView = this.templateRef.createEmbeddedView({});
     templateView.detectChanges();
 
-    const indicatorView = (typeof this.ellipsisIndicator !== 'string') ? this.ellipsisIndicator.createEmbeddedView({}) : null;
+    const indicatorView = (typeof this.indicator !== 'string') ? this.indicator.createEmbeddedView({}) : null;
     if (indicatorView) {
       indicatorView.detectChanges();
     }
@@ -300,7 +300,7 @@ export class EllipsisDirective implements OnInit, OnDestroy, AfterViewChecked {
     this.elem = componentRef.instance.elementRef.nativeElement;
     this.initialTextLength = this.currentLength;
 
-    this.indicatorView = (typeof this.ellipsisIndicator !== 'string') ? this.ellipsisIndicator.createEmbeddedView({}) : null;
+    this.indicatorView = (typeof this.indicator !== 'string') ? this.indicator.createEmbeddedView({}) : null;
     if (this.indicatorView) {
       this.indicatorView.detectChanges();
     }
@@ -312,7 +312,7 @@ export class EllipsisDirective implements OnInit, OnDestroy, AfterViewChecked {
    * The type of the listener (window/element) depends on the `ellipsisResizeDetection`.
    */
   private addResizeListener() {
-    switch (this.ellipsisResizeDetection) {
+    switch (this.resizeDetection) {
       case EllipsisResizeDetectionEnum.Manual:
         // Users will trigger applyEllipsis via the public API
         break;
@@ -322,11 +322,11 @@ export class EllipsisDirective implements OnInit, OnDestroy, AfterViewChecked {
       default:
         if (typeof (console) !== 'undefined') {
           console.warn(`
-            No such ellipsisResizeDetection strategy: '${this.ellipsisResizeDetection}'.
+            No such ellipsisResizeDetection strategy: '${this.resizeDetection}'.
             Using '${EllipsisResizeDetectionEnum.ResizeObserver}' instead.
           `);
         }
-        this.ellipsisResizeDetection = EllipsisResizeDetectionEnum.ResizeObserver;
+        this.resizeDetection = EllipsisResizeDetectionEnum.ResizeObserver;
       // eslint-disable-next-line no-fallthrough
       case EllipsisResizeDetectionEnum.ResizeObserver:
         this.addResizeObserver();
@@ -393,14 +393,14 @@ export class EllipsisDirective implements OnInit, OnDestroy, AfterViewChecked {
 
       if (offset <= max) {
         if (node instanceof CharacterData) {
-          if (this.ellipsisWordBoundaries === '[]' && !this.ellipsisMayTruncateAtFn) {
+          if (this.wordBoundaries === '[]' && !this.mayTruncateAtFn) {
             node.data = node.data.substr(0, max - offset);
           } else if (max - offset !== node.data.length) {
             let j = max - offset - 1;
             while (
               j > 0 && (
-                (this.ellipsisWordBoundaries !== '[]' && !node.data.charAt(j).match(this.ellipsisWordBoundaries)) ||
-                (this.ellipsisMayTruncateAtFn && !this.ellipsisMayTruncateAtFn(node, j))
+                (this.wordBoundaries !== '[]' && !node.data.charAt(j).match(this.wordBoundaries)) ||
+                (this.mayTruncateAtFn && !this.mayTruncateAtFn(node, j))
               )
             ) {
               j--;
@@ -447,9 +447,9 @@ export class EllipsisDirective implements OnInit, OnDestroy, AfterViewChecked {
     if (truncatedNode) {
       if (!this.indicatorView) {
         if (truncatedNode instanceof CharacterData) {
-          truncatedNode.data += <string> this.ellipsisIndicator;
+          truncatedNode.data += <string> this.indicator;
         } else {
-          this.renderer.appendChild(this.elem, this.renderer.createText(<string> this.ellipsisIndicator));
+          this.renderer.appendChild(this.elem, this.renderer.createText(<string> this.indicator));
         }
       } else {
         for (const node of this.indicatorView.rootNodes) {
@@ -473,13 +473,13 @@ export class EllipsisDirective implements OnInit, OnDestroy, AfterViewChecked {
     // remember template state:
     this.previousTemplateHtml = this.templatesToHtml(this.templateView, this.indicatorView);
 
-    // abort if [ellipsis]="false" has been set
-    if (!this.ellipsis) {
+    // abort if [nestedEllipsis]="false" has been set
+    if (!this.active) {
       return;
     }
 
     // Find the best length by trial and error:
-    const maxLength = EllipsisDirective.numericBinarySearch(this.initialTextLength, curLength => {
+    const maxLength = NestedEllipsisDirective.numericBinarySearch(this.initialTextLength, curLength => {
       this.truncateText(curLength);
       return !this.isOverflowing;
     });
@@ -491,9 +491,9 @@ export class EllipsisDirective implements OnInit, OnDestroy, AfterViewChecked {
     this.addResizeListener();
 
     // Emit change event:
-    if (this.ellipsisChange.observers.length > 0) {
+    if (this.change.observers.length > 0) {
       const currentLength = this.currentLength;
-      this.ellipsisChange.emit(
+      this.change.emit(
         (currentLength === this.initialTextLength) ? null : currentLength
       );
     }

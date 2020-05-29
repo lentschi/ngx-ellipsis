@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "ngx-ellipsis-demo": {
+    "ngx-nested-ellipsis-demo": {
       "root": "",
       "sourceRoot": "src",
       "projectType": "application",
@@ -13,7 +13,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
-            "outputPath": "dist/ngx-ellipsis-demo",
+            "outputPath": "dist/ngx-nested-ellipsis-demo",
             "index": "src/index.html",
             "main": "src/main.ts",
             "polyfills": "src/polyfills.ts",
@@ -50,18 +50,18 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "browserTarget": "ngx-ellipsis-demo:build"
+            "browserTarget": "ngx-nested-ellipsis-demo:build"
           },
           "configurations": {
             "production": {
-              "browserTarget": "ngx-ellipsis-demo:build:production"
+              "browserTarget": "ngx-nested-ellipsis-demo:build:production"
             }
           }
         },
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "ngx-ellipsis-demo:build"
+            "browserTarget": "ngx-nested-ellipsis-demo:build"
           }
         },
         "test": {
@@ -95,7 +95,7 @@
         }
       }
     },
-    "ngx-ellipsis-demo-e2e": {
+    "ngx-nested-ellipsis-demo-e2e": {
       "root": "e2e/",
       "projectType": "application",
       "architect": {
@@ -103,11 +103,11 @@
           "builder": "@angular-devkit/build-angular:protractor",
           "options": {
             "protractorConfig": "e2e/protractor.conf.js",
-            "devServerTarget": "ngx-ellipsis-demo:serve"
+            "devServerTarget": "ngx-nested-ellipsis-demo:serve"
           },
           "configurations": {
             "production": {
-              "devServerTarget": "ngx-ellipsis-demo:serve:production"
+              "devServerTarget": "ngx-nested-ellipsis-demo:serve:production"
             }
           }
         },
@@ -122,38 +122,38 @@
         }
       }
     },
-    "ngx-ellipsis": {
-      "root": "projects/ngx-ellipsis",
-      "sourceRoot": "projects/ngx-ellipsis/src",
+    "ngx-nested-ellipsis": {
+      "root": "projects/ngx-nested-ellipsis",
+      "sourceRoot": "projects/ngx-nested-ellipsis/src",
       "projectType": "library",
       "prefix": "ellipsis",
       "architect": {
         "build": {
           "builder": "@angular-devkit/build-ng-packagr:build",
           "options": {
-            "tsConfig": "projects/ngx-ellipsis/tsconfig.lib.json",
-            "project": "projects/ngx-ellipsis/ng-package.json"
+            "tsConfig": "projects/ngx-nested-ellipsis/tsconfig.lib.json",
+            "project": "projects/ngx-nested-ellipsis/ng-package.json"
           },
           "configurations": {
             "production": {
-              "project": "projects/ngx-ellipsis/ng-package.prod.json"
+              "project": "projects/ngx-nested-ellipsis/ng-package.prod.json"
             }
           }
         },
         "test": {
           "builder": "@angular-devkit/build-angular:karma",
           "options": {
-            "main": "projects/ngx-ellipsis/src/test.ts",
-            "tsConfig": "projects/ngx-ellipsis/tsconfig.spec.json",
-            "karmaConfig": "projects/ngx-ellipsis/karma.conf.js"
+            "main": "projects/ngx-nested-ellipsis/src/test.ts",
+            "tsConfig": "projects/ngx-nested-ellipsis/tsconfig.spec.json",
+            "karmaConfig": "projects/ngx-nested-ellipsis/karma.conf.js"
           }
         },
         "lint": {
           "builder": "@angular-devkit/build-angular:tslint",
           "options": {
             "tsConfig": [
-              "projects/ngx-ellipsis/tsconfig.lib.json",
-              "projects/ngx-ellipsis/tsconfig.spec.json"
+              "projects/ngx-nested-ellipsis/tsconfig.lib.json",
+              "projects/ngx-nested-ellipsis/tsconfig.spec.json"
             ],
             "exclude": [
               "**/node_modules/**"
@@ -163,7 +163,7 @@
       }
     }
   },
-  "defaultProject": "ngx-ellipsis-demo",
+  "defaultProject": "ngx-nested-ellipsis-demo",
   "cli": {
     "analytics": false
   }

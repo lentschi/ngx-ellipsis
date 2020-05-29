@@ -1,7 +1,7 @@
 import { Component, ElementRef } from '@angular/core';
 
 @Component({
-  selector: 'ellipsis-content',
+  selector: 'nested-ellipsis-content',
   template: `
     <ng-content></ng-content>
   `,
@@ -14,7 +14,7 @@ import { Component, ElementRef } from '@angular/core';
     }
   `]
 })
-export class EllipsisContentComponent {
+export class NestedEllipsisContentComponent {
   constructor(public elementRef: ElementRef) {}
 }
 

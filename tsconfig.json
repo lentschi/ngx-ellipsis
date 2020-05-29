@@ -19,11 +19,11 @@
       "dom"
     ],
     "paths": {
-      "ngx-ellipsis": [
-        "dist/ngx-ellipsis"
+      "ngx-nested-ellipsis": [
+        "dist/ngx-nested-ellipsis"
       ],
-      "ngx-ellipsis/*": [
-        "dist/ngx-ellipsis/*"
+      "ngx-nested-ellipsis/*": [
+        "dist/ngx-nested-ellipsis/*"
       ]
     }
   }
