@@ -402,7 +402,9 @@ export class EllipsisDirective implements OnInit, OnDestroy, AfterViewChecked {
             ) {
               j--;
             }
-
+            if (offset > 0 && j === 0) {
+              continue;
+            }
             node.data = node.data.substr(0, j);
           }
         }
@@ -428,7 +430,7 @@ export class EllipsisDirective implements OnInit, OnDestroy, AfterViewChecked {
     return this.flattenTextAndElementNodes(this.elem)
       .filter(node => [Node.TEXT_NODE, Node.ELEMENT_NODE].includes(node.nodeType))
       .map(node => (node instanceof CharacterData) ? node.data.length : 1)
-      .reduce((sum, length) => sum + length);
+      .reduce((sum, length) => sum + length, 0);
   }
 
   /**
