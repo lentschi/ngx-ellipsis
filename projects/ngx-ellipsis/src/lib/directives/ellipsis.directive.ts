@@ -438,11 +438,10 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
     }
   }
 
-
   /**
    * Whether the text is exceeding the element's boundaries or not
    */
-  private get isOverflowing(): boolean {
+  public get isOverflowing(): boolean {
     // Enforce hidden overflow (required to compare client width/height with scroll width/height)
     const currentOverflow = this.elem.style.overflow;
     if (!currentOverflow || currentOverflow === 'visible') {
