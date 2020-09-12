@@ -10,7 +10,8 @@ import {
   AfterViewInit,
   OnDestroy,
   Inject,
-  PLATFORM_ID
+  PLATFORM_ID,
+  SimpleChanges
 } from '@angular/core';
 import elementResizeDetectorMaker from 'element-resize-detector';
 import { isPlatformBrowser } from '@angular/common';
@@ -227,15 +228,22 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
    * Change original text (if the ellipsis-content has been passed)
    * and re-render
    */
-  ngOnChanges() {
-    if (!this.elem
-      || typeof this.ellipsisContent === 'undefined'
-      || this.originalText === EllipsisDirective.convertEllipsisInputToString(this.ellipsisContent)) {
-      return;
+  ngOnChanges(changes: SimpleChanges) {
+    const moreAnchorRequiresChange = this.moreAnchor && changes['ellipsisCharacters'];
+    if (moreAnchorRequiresChange) {
+      this.moreAnchor.textContent = this.ellipsisCharacters;
     }
 
-    this.originalText = EllipsisDirective.convertEllipsisInputToString(this.ellipsisContent);
-    this.applyEllipsis();
+    if (this.elem
+        && typeof this.ellipsisContent !== 'undefined'
+        && (
+          this.originalText !== EllipsisDirective.convertEllipsisInputToString(this.ellipsisContent)
+          || moreAnchorRequiresChange
+        )
+    ) {
+      this.originalText = EllipsisDirective.convertEllipsisInputToString(this.ellipsisContent);
+      this.applyEllipsis();
+    }
   }
 
   /**

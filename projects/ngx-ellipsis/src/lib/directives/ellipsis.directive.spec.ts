@@ -32,11 +32,12 @@ class StaticTestComponent {
   template: `
     <div
         id="ellipsisTestDynamic"
-        ellipsis
+        [ellipsis]="ellipsisMoreText"
         [ngStyle]="styles"
         [ellipsis-word-boundaries]="wordBoundaries"
         [ellipsis-content]="htmlContent"
-        (ellipsis-change)="onEllipsisChange($event)"></div>
+        (ellipsis-change)="onEllipsisChange($event)"
+        (ellipsis-click-more)="onEllipsisClickMore($event)"></div>
   `,
   styles: [ ELLIPSIS_TEST_CSS ]
 })
@@ -47,8 +48,11 @@ class DynamicTestComponent {
     width: '100px',
     height: '100px'
   };
+  ellipsisMoreText = '...';
 
   onEllipsisChange(_truncatedAt: number) { }
+
+  onEllipsisClickMore(_event: MouseEvent) { }
 }
 
 @Component({
@@ -112,6 +116,40 @@ describe('EllipsisDirective', () => {
     expect(changeSpy.calls.count()).toBe(2);
     expect(changeSpy.calls.mostRecent().args.length).toBe(1);
     expect(changeSpy.calls.mostRecent().args[0]).toEqual(60);
+  }));
+
+  it('should display click more', async(async () => {
+    const fixture = TestBed.createComponent(DynamicTestComponent);
+    const componentInstance = fixture.componentInstance;
+    const clickMoreSpy = spyOn(componentInstance, 'onEllipsisClickMore');
+    componentInstance.htmlContent = 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt';
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const compiled = fixture.debugElement.nativeElement;
+
+    let moreSpan = <HTMLSpanElement> compiled.querySelector('#ellipsisTestDynamic .ngx-ellipsis-more');
+    expect(moreSpan.innerText).toBe('...');
+    moreSpan.click();
+    expect(clickMoreSpy.calls.count()).toBe(1);
+  }));
+
+  // s. https://github.com/lentschi/ngx-ellipsis/issues/44:
+  it('should adapt more link text on input change', async(async () => {
+    const fixture = TestBed.createComponent(DynamicTestComponent);
+    const componentInstance = fixture.componentInstance;
+    componentInstance.htmlContent = 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt';
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const compiled = fixture.debugElement.nativeElement;
+
+    let moreSpan = <HTMLSpanElement> compiled.querySelector('#ellipsisTestDynamic .ngx-ellipsis-more');
+    expect(moreSpan.innerText).toBe('...');
+
+    componentInstance.ellipsisMoreText = ' (more)';
+    fixture.detectChanges();
+    await fixture.whenStable();
+    moreSpan = <HTMLSpanElement> compiled.querySelector('#ellipsisTestDynamic .ngx-ellipsis-more');
+    expect(moreSpan.innerText).toBe(' (more)');
   }));
 
   it('should create a ellipsis escaping html content', async(async () => {
