@@ -13,7 +13,9 @@ import {
   PLATFORM_ID,
   SimpleChanges
 } from '@angular/core';
-import elementResizeDetectorMaker from 'element-resize-detector';
+import ResizeObserver from 'resize-observer-polyfill';
+import { take } from 'rxjs/operators';
+import { Subject } from 'rxjs';
 import { isPlatformBrowser } from '@angular/common';
 
 /**
@@ -25,11 +27,6 @@ import { isPlatformBrowser } from '@angular/common';
   exportAs: 'ellipsis'
 })
 export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
-  /**
-   * Instance of https://github.com/wnr/element-resize-detector
-   */
-  private static elementResizeDetector: elementResizeDetectorMaker.Erd = null;
-
   /**
    * The original text (not truncated yet)
    */
@@ -50,16 +47,21 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
    */
   private moreAnchor: HTMLAnchorElement;
 
+  private previousDimensions: {
+    width: number,
+    height: number
+  };
+
+  /**
+   * Subject triggered when resize listeners should be removed
+   */
+  private removeResizeListeners$ = new Subject<void>();
+
   /**
    * Remove function for the currently registered click listener
    * on the link `this.ellipsisCharacters` are wrapped in.
    */
   private destroyMoreClickListener: () => void;
-
-  /**
-   * Remove the window listener registered by a previous call to `addWindowResizeListener()`.
-   */
-  private removeWindowResizeListener: () => void;
 
   /**
    * The ellipsis html attribute
@@ -94,12 +96,11 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
   /**
    * The ellipsis-resize-detection html attribute
    * Algorithm to use to detect element/window resize - any of the following:
-   * 'element-resize-detector': (default) Use https://github.com/wnr/element-resize-detector with its 'scroll' strategy
-   * 'element-resize-detector-object': Use https://github.com/wnr/element-resize-detector with its 'object' strategy (deprecated)
+   * 'resize-observer': (default) Use native ResizeObserver - see https://developer.mozilla.org/en-US/docs/Web/API/ResizeObserver and https://github.com/que-etc/resize-observer-polyfill
    * 'window': Only check if the whole window has been resized/changed orientation by using angular's built-in HostListener
    */
   @Input('ellipsis-resize-detection') resizeDetectionStrategy:
-    '' | 'manual' | 'element-resize-detector' | 'element-resize-detector-object' | 'window';
+    '' | 'manual' | 'resize-observer' | 'window';
 
   /**
    * The ellipsis-click-more html attribute
@@ -219,6 +220,11 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
     this.renderer.appendChild(this.innerElem, text);
     this.renderer.appendChild(this.elem, this.innerElem);
 
+    this.previousDimensions = {
+      width: this.elem.clientWidth,
+      height: this.elem.clientHeight
+    };
+
     // start listening for resize events:
     this.addResizeListener(true);
   }
@@ -287,17 +293,14 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
       case 'window':
         this.addWindowResizeListener();
         break;
-      case 'element-resize-detector-object':
-        this.addElementResizeListener(false);
-        break;
       default:
         if (typeof (console) !== 'undefined') {
           console.warn(
-            `No such ellipsis-resize-detection strategy: '${this.resizeDetectionStrategy}'. Using 'element-resize-detector' instead`
+            `No such ellipsis-resize-detection strategy: '${this.resizeDetectionStrategy}'. Using 'resize-observer' instead`
           );
         }
       // eslint-disable-next-line no-fallthrough
-      case 'element-resize-detector':
+      case 'resize-observer':
       case '':
         this.addElementResizeListener();
         break;
@@ -312,47 +315,42 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
    * Set up an event listener to call applyEllipsis() whenever the window gets resized.
    */
   private addWindowResizeListener() {
-    this.removeWindowResizeListener = this.renderer.listen('window', 'resize', () => {
+    const removeWindowResizeListener = this.renderer.listen('window', 'resize', () => {
       this.ngZone.run(() => {
         this.applyEllipsis();
       });
     });
+
+    this.removeResizeListeners$.pipe(take(1)).subscribe(() => removeWindowResizeListener());
   }
 
   /**
    * Set up an event listener to call applyEllipsis() whenever the element
    * has been resized.
-   * @param scrollStrategy=true Use the default elementResizeDetector's - strategy - s. https://github.com/wnr/element-resize-detector
    */
-  private addElementResizeListener(scrollStrategy = true) {
-    if (!EllipsisDirective.elementResizeDetector) {
-      EllipsisDirective.elementResizeDetector = elementResizeDetectorMaker({ strategy: scrollStrategy ? 'scroll' : 'object' });
-    }
+  private addElementResizeListener() {
+    const resizeObserver = new ResizeObserver(() => {
+      window.requestAnimationFrame(() => {
+        if (this.previousDimensions.width !== this.elem.clientWidth || this.previousDimensions.height !== this.elem.clientHeight) {
+          this.ngZone.run(() => {
+            this.applyEllipsis();
+          });
 
-
-    let firstEvent = true;
-    EllipsisDirective.elementResizeDetector.listenTo(this.elementRef.nativeElement, () => {
-      if (firstEvent) {
-        // elementResizeDetector fires the event directly after re-attaching the listener
-        // -> discard that first event:
-        firstEvent = false;
-        return;
-      }
-      this.applyEllipsis();
+          this.previousDimensions.width = this.elem.clientWidth;
+          this.previousDimensions.height = this.elem.clientHeight;
+        }
+      });
     });
+    resizeObserver.observe(this.elem);
+    this.removeResizeListeners$.pipe(take(1)).subscribe(() => resizeObserver.disconnect());
   }
 
   /**
    * Stop listening for any resize event.
    */
   private removeResizeListener() {
-    if (this.resizeDetectionStrategy !== 'window') {
-      if (EllipsisDirective.elementResizeDetector && this.elem) {
-        EllipsisDirective.elementResizeDetector.removeAllListeners(this.elem);
-      }
-    } else {
-      this.removeWindowResizeListener();
-    }
+    this.removeResizeListeners$.next();
+    this.removeResizeListeners$.complete();
   }
 
   /**

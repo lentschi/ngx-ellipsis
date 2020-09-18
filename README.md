@@ -54,7 +54,7 @@ You may add the following attributes to change the directive's behavior:
 | __ellipsis-content__ | Use this for dynamic content, that will be subject to asynchronous changes (e.g.: `[ellipsis-content]="myVar"`) |
 | __ellipsis-word-boundaries__ | If you pass this attribute, the text won't be truncated at just any character but only at those in the attribute's value. For example `ellipsis-word-boundaries=" \n"` will allow the text to break at spaces and newlines only |
 | __ellipsis-substr-fn__ | `substr` function to use for string splitting. Defaults to the native `String#substr`. (This may for example be used to avoid splitting [surrogate pairs](http://en.wikipedia.org/wiki/UTF-16) - used by some emojis - by providing a lib such as [runes](https://github.com/dotcypress/runes).) |
-| __ellipsis-resize-detection__ | How resize events should be detected - these are the possible values: <ul><li>__element-resize-detector__: _default_ Use [wnr/element-resize-detector](https://github.com/wnr/element-resize-detector) with its `scroll` strategy. (-> Even when you change the element's width using javascript, the ellipsis will auto-adept)</li><li>__element-resize-detector-object__: _deprecated_ Use [wnr/element-resize-detector](https://github.com/wnr/element-resize-detector) with its `object` strategy</li><li>__window__: Only listen if the whole window has been resized/changed orientation (Possibly better performance, but obviously won't trigger on resize caused directly or indirectly by javascript.)</li><li>__manual__: Ellipsis is never applied automatically. Instead the consuming app may use `#ell="ellipsis"` in the template and `this.ell.applyEllipsis()` in the component code.</li></ul> |
+| __ellipsis-resize-detection__ | How resize events should be detected - these are the possible values: <ul><li>__resize-observer__: _default_ Use native ResizeObserver - see https://developer.mozilla.org/en-US/docs/Web/API/ResizeObserver and https://github.com/que-etc/resize-observer-polyfill</li><li>__window__: Only listen if the whole window has been resized/changed orientation (Possibly better performance, but obviously won't trigger on resize caused directly or indirectly by javascript.)</li><li>__manual__: Ellipsis is never applied automatically. Instead the consuming app may use `#ell="ellipsis"` in the template and `this.ell.applyEllipsis()` in the component code.</li></ul> |
 | __ellipsis-click-more__ | Event emitter - If set, the text defined by the `ellipsis`  attribute will be converted into a clickable link. For example `(ellipsis-click-more)="moreClicked()"` will call your component's `moreClicked()` method when the user clicks on the link.|
 | __ellipsis-change__ | Event emitter - Will be emitted whenever the ellipsis has been recalculated (depending on `ellipsis-resize-detection`). If the text had to be truncated the position of the last visible character will be emitted, else `null`.|
 
@@ -75,7 +75,7 @@ Run `npm run test ngx-ellipsis` to execute the unit tests via [Karma](https://ka
 
 ## Thank you...
 
-- ... __Lucas Wiener__ for writing the [element-resize-detector](https://github.com/wnr/element-resize-detector) package which is internally used by this module.
+- ... __Denis Rul__ for writing the [resize-observer-polyfill](https://github.com/que-etc/resize-observer-polyfill) package which is internally used by this module.
 
 ## License
 
