@@ -1,6 +1,6 @@
 {
   "name": "ngx-ellipsis",
-  "version": "2.3.2",
+  "version": "2.3.3",
   "description": "Multiline text with ellipsis for angular 6+",
   "author": "Florian Lentsch",
   "license": "MIT",
@@ -10,13 +10,10 @@
     "url": "https://github.com/lentschi/ngx-ellipsis"
   },
   "peerDependencies": {
-    "@angular/common": ">=6.0.0 <10.0.0 || >7.0.0-beta <10.0.0",
-    "@angular/core": ">=6.0.0 <10.0.0 || >7.0.0-beta <10.0.0"
+    "@angular/common": ">=6.0.0 <11.0.0 || >7.0.0-beta <11.0.0",
+    "@angular/core": ">=6.0.0 <11.0.0 || >7.0.0-beta <11.0.0"
   },
   "dependencies": {
-    "element-resize-detector": "^1.2.1"
-  },
-  "devDependencies": {
-    "@types/element-resize-detector": "^1.1.0"
+    "resize-observer-polyfill": "*"
   }
 }

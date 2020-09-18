@@ -5,8 +5,8 @@
   "lib": {
     "entryFile": "src/public_api.ts",
     "umdModuleIds": {
-      "element-resize-detector": "elementResizeDetectorMaker"
+      "resize-observer-polyfill": "ResizeObserver"
     }
   },
-  "whitelistedNonPeerDependencies": ["element-resize-detector"]
+  "whitelistedNonPeerDependencies": ["resize-observer-polyfill"]
 }
