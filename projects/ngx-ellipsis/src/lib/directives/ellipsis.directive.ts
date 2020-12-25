@@ -408,7 +408,7 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
     // If the text has been truncated, add a more click listener:
     if (addMoreListener && textTruncated) {
       this.destroyMoreClickListener = this.renderer.listen(this.moreAnchor, 'click', (e: MouseEvent) => {
-        if (!e.target || (<HTMLElement> e.target).className !== 'ngx-ellipsis-more') {
+        if (!e.target || !(<HTMLElement> e.target).classList.contains('ngx-ellipsis-more')) {
           return;
         }
         e.preventDefault();
