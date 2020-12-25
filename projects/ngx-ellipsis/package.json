@@ -10,10 +10,11 @@
     "url": "https://github.com/lentschi/ngx-ellipsis"
   },
   "peerDependencies": {
-    "@angular/common": ">=6.0.0 <11.0.0 || >7.0.0-beta <11.0.0",
-    "@angular/core": ">=6.0.0 <11.0.0 || >7.0.0-beta <11.0.0"
+    "@angular/common": ">=9.0.0 <12.0.0 || >10.0.0-beta <12.0.0",
+    "@angular/core": ">=9.0.0 <12.0.0 || >10.0.0-beta <12.0.0"
   },
   "dependencies": {
-    "resize-observer-polyfill": "*"
+    "resize-observer-polyfill": "*",
+    "tslib": "^2.0.0"
   }
 }

@@ -5,25 +5,20 @@
     "outDir": "./dist/out-tsc",
     "sourceMap": true,
     "declaration": false,
-    "module": "esnext",
-    "moduleResolution": "node",
-    "emitDecoratorMetadata": true,
+    "downlevelIteration": true,
     "experimentalDecorators": true,
-    "allowSyntheticDefaultImports": true,
+    "moduleResolution": "node",
+    "importHelpers": true,
     "target": "es2015",
-    "typeRoots": [
-      "node_modules/@types"
-    ],
+    "module": "es2020",
     "lib": [
-      "es2017",
+      "es2018",
       "dom"
     ],
     "paths": {
       "ngx-ellipsis": [
+        "dist/ngx-ellipsis/ngx-ellipsis",
         "dist/ngx-ellipsis"
-      ],
-      "ngx-ellipsis/*": [
-        "dist/ngx-ellipsis/*"
       ]
     }
   }

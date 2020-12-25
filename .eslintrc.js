@@ -128,12 +128,7 @@ module.exports = {
     {
       files: ['*.component.html'],
       parser: '@angular-eslint/template-parser',
-      plugins: ['@angular-eslint/template'],
-      rules: {
-        '@angular-eslint/template/banana-in-a-box': 'warn',
-
-        '@angular-eslint/template/no-negated-async': 'warn',
-      },
+      plugins: ['@angular-eslint/template']
     }
   ],
 };
