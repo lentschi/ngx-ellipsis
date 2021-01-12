@@ -274,7 +274,8 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
       this.destroyMoreClickListener();
     }
 
-    this.removeResizeListener();
+    this.removeResizeListeners$.next();
+    this.removeResizeListeners$.complete();
   }
 
 
@@ -348,14 +349,6 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
   }
 
   /**
-   * Stop listening for any resize event.
-   */
-  private removeResizeListener() {
-    this.removeResizeListeners$.next();
-    this.removeResizeListeners$.complete();
-  }
-
-  /**
    * Get the original text's truncated version. If the text really needed to
    * be truncated, this.ellipsisCharacters will be appended.
    * @param max the maximum length the text may have
@@ -424,7 +417,7 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
    */
   public applyEllipsis() {
     // Remove the resize listener as changing the contained text would trigger events:
-    this.removeResizeListener();
+    this.removeResizeListeners$.next();
 
     // Find the best length by trial and error:
     const maxLength = EllipsisDirective.numericBinarySearch(this.originalText.length, curLength => {
