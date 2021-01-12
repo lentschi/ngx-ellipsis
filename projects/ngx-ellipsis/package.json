@@ -1,7 +1,7 @@
 {
   "name": "ngx-ellipsis",
-  "version": "3.1.0",
-  "description": "Multiline text with ellipsis for angular 6+",
+  "version": "3.1.1",
+  "description": "Multiline text with ellipsis for angular 9+",
   "author": "Florian Lentsch",
   "license": "MIT",
   "readme": "README.md",
