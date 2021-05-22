@@ -8,5 +8,5 @@
       "@juggle/resize-observer": "ResizeObserver"
     }
   },
-  "whitelistedNonPeerDependencies": ["@juggle/resize-observer"]
+  "allowedNonPeerDependencies": ["@juggle/resize-observer"]
 }
