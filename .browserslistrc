@@ -14,4 +14,6 @@ last 2 Edge major versions
 last 2 Safari major versions
 last 2 iOS major versions
 Firefox ESR
-IE 11 # Angular supports IE 11 only as an opt-in. To opt-in, remove the 'not' prefix on this line.
+# TODO: Prefix change the following line to 'not IE 11' as soon as angular 13 is stable
+# (IE will no longer be supported then)
+IE 11

@@ -98,7 +98,7 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
    * Algorithm to use to detect element/window resize - any of the following:
    * 'resize-observer': (default) Use native ResizeObserver - see
    *    https://developer.mozilla.org/en-US/docs/Web/API/ResizeObserver
-   *    and https://github.com/que-etc/resize-observer-polyfill
+   *    and https://github.com/juggle/resize-observer
    * 'window': Only check if the whole window has been resized/changed orientation by using angular's built-in HostListener
    */
   @Input('ellipsis-resize-detection') resizeDetectionStrategy:
