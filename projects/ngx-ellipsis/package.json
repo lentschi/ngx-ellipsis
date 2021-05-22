@@ -14,7 +14,7 @@
     "@angular/core": ">=9.0.0 <13.0.0 || >10.0.0-beta <13.0.0"
   },
   "dependencies": {
-    "resize-observer-polyfill": "*",
+    "@juggle/resize-observer": "*",
     "tslib": "^2.0.0"
   }
 }

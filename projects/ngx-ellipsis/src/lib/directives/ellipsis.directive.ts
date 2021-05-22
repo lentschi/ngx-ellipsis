@@ -13,7 +13,7 @@ import {
   PLATFORM_ID,
   SimpleChanges
 } from '@angular/core';
-import ResizeObserver from 'resize-observer-polyfill';
+import { ResizeObserver } from '@juggle/resize-observer';
 import { take } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 import { isPlatformBrowser } from '@angular/common';
