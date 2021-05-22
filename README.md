@@ -75,7 +75,7 @@ Run `npm run test ngx-ellipsis` to execute the unit tests via [Karma](https://ka
 
 ## Thank you...
 
-- ... __trem__ for writing the [@juggle/resize-observer](https://github.com/juggle/resize-observer) package which is internally used by this module.
+- ... __Tremayne Christ__ for writing the [@juggle/resize-observer](https://github.com/juggle/resize-observer) package which is internally used by this module.
 
 ## License
 

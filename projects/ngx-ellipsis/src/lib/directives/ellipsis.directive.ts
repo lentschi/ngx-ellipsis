@@ -13,10 +13,13 @@ import {
   PLATFORM_ID,
   SimpleChanges
 } from '@angular/core';
-import { ResizeObserver } from '@juggle/resize-observer';
+import { ResizeObserver as ResizeObserverPonyfill } from '@juggle/resize-observer';
 import { take } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 import { isPlatformBrowser } from '@angular/common';
+
+
+const ResizeObserver = (<any> window).ResizeObserver || ResizeObserverPonyfill;
 
 /**
  * Directive to truncate the contained text, if it exceeds the element's boundaries
