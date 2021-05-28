@@ -19,7 +19,7 @@ import { Subject } from 'rxjs';
 import { isPlatformBrowser } from '@angular/common';
 
 
-const ResizeObserver = (<any> window).ResizeObserver || ResizeObserverPonyfill;
+let ResizeObserver = ResizeObserverPonyfill;
 
 /**
  * Directive to truncate the contained text, if it exceeds the element's boundaries
@@ -184,6 +184,11 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
       // DOM manipulation properties we sadly need to access here,
       // so wait until we're in the browser:
       return;
+    }
+
+    // Prefer native ResizeObserver over ponyfill, if available:
+    if ((<any> window).ResizeObserver != null) {
+      ResizeObserver = (<any> window).ResizeObserver;
     }
 
     // let the ellipsis characters default to '...':
