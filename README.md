@@ -1,6 +1,6 @@
 # ngx-ellipsis
 
-Plugin for angular providing a directive to display an ellipsis if the containing text would overflow.
+Angular library providing a directive to display an ellipsis if the containing text would overflow.
 
 Supports text only - __No HTML contents!__ (If you really do need html contents to be truncated, you might want to take a look at my spin-off lib: [ngx-nested-ellipsis](https://github.com/lentschi/ngx-nested-ellipsis). It is able to do just that, but takes slightly more processing power to perform its task.)
 
