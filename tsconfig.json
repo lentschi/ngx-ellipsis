@@ -14,12 +14,6 @@
     "lib": [
       "es2018",
       "dom"
-    ],
-    "paths": {
-      "ngx-ellipsis": [
-        "dist/ngx-ellipsis/ngx-ellipsis",
-        "dist/ngx-ellipsis"
-      ]
-    }
+    ]
   }
 }

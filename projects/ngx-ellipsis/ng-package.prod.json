@@ -3,9 +3,5 @@
   "dest": "../../dist/ngx-ellipsis",
   "lib": {
     "entryFile": "src/public_api.ts",
-    "umdModuleIds": {
-      "@juggle/resize-observer": "ResizeObserver"
-    }
-  },
-  "allowedNonPeerDependencies": ["@juggle/resize-observer"]
+  }
 }

@@ -13,13 +13,11 @@ import {
   PLATFORM_ID,
   SimpleChanges
 } from '@angular/core';
-import { ResizeObserver as ResizeObserverPonyfill } from '@juggle/resize-observer';
 import { take } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 import { isPlatformBrowser } from '@angular/common';
 
 
-let ResizeObserver = ResizeObserverPonyfill;
 
 /**
  * Directive to truncate the contained text, if it exceeds the element's boundaries
@@ -101,7 +99,6 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
    * Algorithm to use to detect element/window resize - any of the following:
    * 'resize-observer': (default) Use native ResizeObserver - see
    *    https://developer.mozilla.org/en-US/docs/Web/API/ResizeObserver
-   *    and https://github.com/juggle/resize-observer
    * 'window': Only check if the whole window has been resized/changed orientation by using angular's built-in HostListener
    */
   @Input('ellipsis-resize-detection') resizeDetectionStrategy:
@@ -184,11 +181,6 @@ export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
       // DOM manipulation properties we sadly need to access here,
       // so wait until we're in the browser:
       return;
-    }
-
-    // Prefer native ResizeObserver over ponyfill, if available:
-    if ((<any> window).ResizeObserver != null) {
-      ResizeObserver = (<any> window).ResizeObserver;
     }
 
     // let the ellipsis characters default to '...':
