@@ -2,7 +2,7 @@ version: 2.1
 jobs:
   build-and-test:
     docker: # run the steps with Docker
-      - image: circleci/node:20.17-buster-browsers
+      - image: cimg/node:20.17
     steps:
       - checkout
       - run:
