@@ -140,7 +140,6 @@
       }
     }
   },
-  "defaultProject": "ngx-ellipsis-demo",
   "cli": {
     "analytics": false
   }
