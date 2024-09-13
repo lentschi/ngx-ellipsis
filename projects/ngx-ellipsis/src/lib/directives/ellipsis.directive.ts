@@ -24,8 +24,9 @@ import { isPlatformBrowser } from '@angular/common';
  * and append characters (configurable, default '...') if so.
  */
 @Directive({
-  selector: '[ellipsis]',
-  exportAs: 'ellipsis'
+    selector: '[ellipsis]',
+    exportAs: 'ellipsis',
+    standalone: true
 })
 export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
   /**

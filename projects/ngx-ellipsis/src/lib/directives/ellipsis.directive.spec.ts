@@ -16,20 +16,21 @@ const ELLIPSIS_TEST_CSS = `
 
 
 @Component({
-  selector: 'ellipsis-test-cmp',
-  template: `
+    selector: 'ellipsis-test-cmp',
+    template: `
     <div style="width: 100px; height:50px;" id="ellipsisTest" ellipsis>
       Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt
     </div>
   `,
-  styles: [ ELLIPSIS_TEST_CSS ]
+    styles: [ELLIPSIS_TEST_CSS],
+    standalone: true
 })
 class StaticTestComponent {
 }
 
 @Component({
-  selector: 'ellipsis-test-cmp',
-  template: `
+    selector: 'ellipsis-test-cmp',
+    template: `
     <div
         id="ellipsisTestDynamic"
         [ellipsis]="ellipsisMoreText"
@@ -39,7 +40,8 @@ class StaticTestComponent {
         (ellipsis-change)="onEllipsisChange($event)"
         (ellipsis-click-more)="onEllipsisClickMore($event)"></div>
   `,
-  styles: [ ELLIPSIS_TEST_CSS ]
+    styles: [ELLIPSIS_TEST_CSS],
+    standalone: true
 })
 class DynamicTestComponent {
   htmlContent = '<b>Lorem ipsum</b> dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt';
@@ -56,15 +58,16 @@ class DynamicTestComponent {
 }
 
 @Component({
-  selector: 'ellipsis-number-test-cmp',
-  template: `
+    selector: 'ellipsis-number-test-cmp',
+    template: `
     <div
         style="width: 100px; height:100px;"
         id="ellipsisNumberTestDynamic"
         ellipsis
         [ellipsis-content]="htmlContent"></div>
   `,
-  styles: [ ELLIPSIS_TEST_CSS ]
+    styles: [ELLIPSIS_TEST_CSS],
+    standalone: true
 })
 class NumberTestComponent {
   htmlContent = 0;
@@ -74,16 +77,14 @@ describe('EllipsisDirective', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [
-        DynamicTestComponent,
+    imports: [DynamicTestComponent,
         NumberTestComponent,
         StaticTestComponent,
-        EllipsisDirective
-      ],
-      providers: [
+        EllipsisDirective],
+    providers: [
         { provide: ComponentFixtureAutoDetect, useValue: true }
-      ]
-    });
+    ]
+});
   }));
 
   it('should create a ellipsis', async(async () => {
