@@ -24,10 +24,10 @@ import { isPlatformBrowser } from '@angular/common';
  * and append characters (configurable, default '...') if so.
  */
 @Directive({
-    selector: '[ellipsis]',
-    exportAs: 'ellipsis',
-    standalone: true
-})
+  selector: '[ellipsis]',
+  exportAs: 'ellipsis',
+  standalone: true
+  })
 export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
   /**
    * The original text (not truncated yet)
