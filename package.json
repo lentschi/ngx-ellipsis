@@ -8,7 +8,7 @@
     "build-lib": "npm run test-no-watch && ng build ngx-ellipsis --configuration production && copyfiles README.md dist/ngx-ellipsis",
     "publish-lib": "cd dist/ngx-ellipsis && npm publish",
     "test": "ng test",
-    "test-no-watch": "ng test --watch=false --browsers=ChromiumHeadless",
+    "test-no-watch": "ng test --watch=false --browsers=ChromeHeadless",
     "lint": "ng lint"
   },
   "private": true,
