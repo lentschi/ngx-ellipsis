@@ -1,10 +1,14 @@
 import { Component } from '@angular/core';
+import { NgIf } from '@angular/common';
+import { EllipsisDirective } from 'projects/ngx-ellipsis/src/public_api';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.css']
-})
+  styleUrls: ['./app.component.css'],
+  standalone: true,
+  imports: [NgIf, EllipsisDirective]
+  })
 export class AppComponent {
   title = 'ngx-ellipsis-demo';
   longText = 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna \

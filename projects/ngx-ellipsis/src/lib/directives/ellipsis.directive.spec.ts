@@ -1,7 +1,10 @@
-import { TestBed, async } from '@angular/core/testing';
-import { Component } from '@angular/core';
+import { TestBed } from '@angular/core/testing';
+import { Component, EventEmitter, Output } from '@angular/core';
 import { EllipsisDirective } from './ellipsis.directive';
 import { ComponentFixtureAutoDetect } from '@angular/core/testing';
+import { NgStyle } from '@angular/common';
+import { filter, take } from 'rxjs/operators';
+import { BehaviorSubject } from 'rxjs';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000;
 
@@ -22,8 +25,10 @@ const ELLIPSIS_TEST_CSS = `
       Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt
     </div>
   `,
-  styles: [ ELLIPSIS_TEST_CSS ]
-})
+  styles: [ELLIPSIS_TEST_CSS],
+  imports: [EllipsisDirective],
+  standalone: true
+  })
 class StaticTestComponent {
 }
 
@@ -39,8 +44,10 @@ class StaticTestComponent {
         (ellipsis-change)="onEllipsisChange($event)"
         (ellipsis-click-more)="onEllipsisClickMore($event)"></div>
   `,
-  styles: [ ELLIPSIS_TEST_CSS ]
-})
+  styles: [ELLIPSIS_TEST_CSS],
+  imports: [EllipsisDirective, NgStyle],
+  standalone: true
+  })
 class DynamicTestComponent {
   htmlContent = '<b>Lorem ipsum</b> dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt';
   wordBoundaries = ' \n';
@@ -50,7 +57,11 @@ class DynamicTestComponent {
   };
   ellipsisMoreText = '...';
 
-  onEllipsisChange(_truncatedAt: number) { }
+  @Output() ellipsisChange = new EventEmitter<number>();
+
+  onEllipsisChange(truncatedAt: number) {
+    this.ellipsisChange.emit(truncatedAt);
+  }
 
   onEllipsisClickMore(_event: MouseEvent) { }
 }
@@ -64,38 +75,39 @@ class DynamicTestComponent {
         ellipsis
         [ellipsis-content]="htmlContent"></div>
   `,
-  styles: [ ELLIPSIS_TEST_CSS ]
-})
+  styles: [ELLIPSIS_TEST_CSS],
+  imports: [EllipsisDirective],
+  standalone: true
+  })
 class NumberTestComponent {
   htmlContent = 0;
 }
 
 describe('EllipsisDirective', () => {
 
-  beforeEach(async(() => {
+  beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [
+      imports: [
         DynamicTestComponent,
         NumberTestComponent,
         StaticTestComponent,
-        EllipsisDirective
       ],
       providers: [
         { provide: ComponentFixtureAutoDetect, useValue: true }
       ]
     });
-  }));
+  });
 
-  it('should create a ellipsis', async(async () => {
+  it('should create a ellipsis', async () => {
     const fixture = TestBed.createComponent(StaticTestComponent);
     fixture.detectChanges();
     await fixture.whenStable();
     const compiled = fixture.debugElement.nativeElement;
     const ellipsisDiv = compiled.querySelector('#ellipsisTest > div');
     expect(ellipsisDiv.innerHTML).toBe('Lorem ipsum dolor sit ame...');
-  }));
+  });
 
-  it('should emit details about the ellipsis', async(async () => {
+  it('should emit details about the ellipsis', async () => {
     const fixture = TestBed.createComponent(DynamicTestComponent);
     const componentInstance = fixture.componentInstance;
     const changeSpy = spyOn(componentInstance, 'onEllipsisChange');
@@ -116,9 +128,9 @@ describe('EllipsisDirective', () => {
     expect(changeSpy.calls.count()).toBe(2);
     expect(changeSpy.calls.mostRecent().args.length).toBe(1);
     expect(changeSpy.calls.mostRecent().args[0]).toEqual(60);
-  }));
+  });
 
-  it('should display click more', async(async () => {
+  it('should display click more', async () => {
     const fixture = TestBed.createComponent(DynamicTestComponent);
     const componentInstance = fixture.componentInstance;
     const clickMoreSpy = spyOn(componentInstance, 'onEllipsisClickMore');
@@ -131,10 +143,10 @@ describe('EllipsisDirective', () => {
     expect(moreSpan.innerText).toBe('...');
     moreSpan.click();
     expect(clickMoreSpy.calls.count()).toBe(1);
-  }));
+  });
 
   // s. https://github.com/lentschi/ngx-ellipsis/issues/44:
-  it('should adapt more link text on input change', async(async () => {
+  it('should adapt more link text on input change', async () => {
     const fixture = TestBed.createComponent(DynamicTestComponent);
     const componentInstance = fixture.componentInstance;
     componentInstance.htmlContent = 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt';
@@ -150,9 +162,9 @@ describe('EllipsisDirective', () => {
     await fixture.whenStable();
     moreSpan = <HTMLSpanElement> compiled.querySelector('#ellipsisTestDynamic .ngx-ellipsis-more');
     expect(moreSpan.innerText).toBe(' (more)');
-  }));
+  });
 
-  it('should create a ellipsis escaping html content', async(async () => {
+  it('should create a ellipsis escaping html content', async () => {
     const fixture = TestBed.createComponent(DynamicTestComponent);
     const componentInstance = fixture.componentInstance;
 
@@ -180,11 +192,11 @@ describe('EllipsisDirective', () => {
     componentInstance.styles.width = '390px';
     componentInstance.styles.height = '30px';
     fixture.detectChanges();
-    await fixture.whenStable();
+    await componentInstance.ellipsisChange.asObservable().pipe(filter((truncatedAt) => truncatedAt === 54), take(1)).toPromise();
     expect(ellipsisDiv.innerText).toBe('C\'est l\'homme&nbsp;qui a vu <b>l\'homme</b> qui a vu l\'...');
-  }));
+  });
 
-  it('should handle null graciously', async(async () => {
+  it('should handle null graciously', async () => {
     const fixture = TestBed.createComponent(DynamicTestComponent);
     const componentInstance = fixture.componentInstance;
 
@@ -198,9 +210,9 @@ describe('EllipsisDirective', () => {
     fixture.detectChanges();
     await fixture.whenStable();
     expect(ellipsisDiv.innerText).toBe('');
-  }));
+  });
 
-  it('should handle numbers graciously', async(async () => {
+  it('should handle numbers graciously', async () => {
     const numberFixture = TestBed.createComponent(NumberTestComponent);
     const numberComponentInstance = numberFixture.componentInstance;
 
@@ -220,7 +232,7 @@ describe('EllipsisDirective', () => {
     numberFixture.detectChanges();
     await numberFixture.whenStable();
     expect(ellipsisDiv.innerText).toBe('3.141592653...');
-  }));
+  });
 });
 
 

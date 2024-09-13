@@ -1,9 +1,13 @@
 version: 2.1
+orbs:
+    browser-tools: circleci/browser-tools@1.4.0
 jobs:
   build-and-test:
     docker: # run the steps with Docker
-      - image: circleci/node:16.13-buster-browsers
+      - image: cimg/node:20.17-browsers
     steps:
+      - browser-tools/install-chrome:
+          channel: stable
       - checkout
       - run:
           name: install-node-packages
@@ -13,7 +17,7 @@ jobs:
           command: "npx eslint --ext .ts,.html --max-warnings 0 ./"
       - run:
           name: run-angular-lib-tests
-          command: "npm run test -- --browsers=ChromeHeadless --watch=false ngx-ellipsis"
+          command: "npm run test -- --watch=false ngx-ellipsis"
 workflows:
     build-and-test:
       jobs:

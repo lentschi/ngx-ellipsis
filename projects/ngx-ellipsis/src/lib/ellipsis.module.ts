@@ -2,9 +2,7 @@ import { NgModule } from '@angular/core';
 import { EllipsisDirective } from './directives/ellipsis.directive';
 
 @NgModule({
-  imports: [
-  ],
-  declarations: [EllipsisDirective],
+  imports: [EllipsisDirective],
   exports: [EllipsisDirective]
-})
+  })
 export class EllipsisModule { }

@@ -12,32 +12,30 @@ For a demo either just checkout this project and run `npm install && npm run sta
 
 For use in an existing angular project run `npm install ngx-ellipsis --save`.
 
-Then add the installed module to your `app.module.ts`:
-
-```typescript
-import { EllipsisModule } from 'ngx-ellipsis';
-
-// ...
-
-@NgModule({
-  // ...
-  imports: [
-    // ...
-    EllipsisModule
-  ]
-  // ...
-})
-export class AppModule {}
-
-```
-
-### Note
-
-If you're using the new angular [standalone components/directives/pipes](https://blog.angular-university.io/angular-standalone-components/) in your project (available since angular 16), you'll need to add `EllipsisModule` to each consuming components' imports instead.
 
 ## Usage
 
-Anywhere in your template:
+Add the directive to the component, in which you want to use the ellipsis:
+
+```typescript
+import { EllipsisDirective } from 'ngx-ellipsis';
+
+@NgModule({
+  selector: 'your-fancy-component',
+  // ...
+  imports: [ 
+    EllipsisDirective,
+    // ...
+  ],
+  standalone: true
+})
+export class YourFancyComponent {}
+
+```
+
+
+
+Then anywhere in this component's template:
 
 ```html
 <div style="width: 100px; height: 100px;" ellipsis>Your very long text</div>
@@ -47,6 +45,10 @@ Anywhere in your template:
 ```
 
 As you can see, you need to define the dimensions of your element yourself. (ngx-ellipsis doesn't automatically add any element styles.) But of course you don't need to use fixed widths/heights like in these examples. Flex layout shold work just fine for example.
+
+### Note
+
+Should you not be using [angular standalone components](https://blog.angular-university.io/angular-standalone-components/) in your project (available since angular 16), see [old instructions](https://github.com/lentschi/ngx-ellipsis/blob/v4.1.4/README.md#installation) on how to import it in `AppModule`.
 
 ### Extra options
 

@@ -25,8 +25,9 @@ import { isPlatformBrowser } from '@angular/common';
  */
 @Directive({
   selector: '[ellipsis]',
-  exportAs: 'ellipsis'
-})
+  exportAs: 'ellipsis',
+  standalone: true
+  })
 export class EllipsisDirective implements OnChanges, OnDestroy, AfterViewInit {
   /**
    * The original text (not truncated yet)
