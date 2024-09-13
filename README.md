@@ -31,6 +31,10 @@ export class AppModule {}
 
 ```
 
+### Note
+
+If you're using the new angular [standalone components/directives/pipes](https://blog.angular-university.io/angular-standalone-components/) in your project (available since angular 16), you'll need to add `EllipsisModule` to each consuming components' imports instead.
+
 ## Usage
 
 Anywhere in your template:
