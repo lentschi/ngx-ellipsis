@@ -20,7 +20,7 @@ Add the directive to the component, in which you want to use the ellipsis:
 ```typescript
 import { EllipsisDirective } from 'ngx-ellipsis';
 
-@NgModule({
+@Component({
   selector: 'your-fancy-component',
   // ...
   imports: [ 
@@ -46,9 +46,9 @@ Then anywhere in this component's template:
 
 As you can see, you need to define the dimensions of your element yourself. (ngx-ellipsis doesn't automatically add any element styles.) But of course you don't need to use fixed widths/heights like in these examples. Flex layout shold work just fine for example.
 
-### Note
+### Module import
 
-Should you not be using [angular standalone components](https://blog.angular-university.io/angular-standalone-components/) in your project (available since angular 16), see [old instructions](https://github.com/lentschi/ngx-ellipsis/blob/v4.1.4/README.md#installation) on how to import it in `AppModule`.
+Should you not be using [angular standalone components](https://blog.angular-university.io/angular-standalone-components/) in your project (available since angular 16), import `EllipsisModule` in your module instead - see [old instructions](https://github.com/lentschi/ngx-ellipsis/blob/v4.1.4/README.md#installation) for an example.
 
 ### Extra options
 
